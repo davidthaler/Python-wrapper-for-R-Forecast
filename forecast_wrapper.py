@@ -31,14 +31,14 @@ def _extract_forecast(fc, horizon, mean_only, as_pandas):
   and return them as either Python or Pandas objects.
   
   Args:
-    fc - a completed forecast
+    fc - an object with class forecast from R Forecast
     horizon - number of steps ahead in the forecast
     mean_only - if True, return only the mean prediction.
     as_pandas  - if True, return a Pandas DataFrame or Series
     
   Returns:
-    A forecast with or without prediction intervals, as either a list/tuple
-    or as a Pandas DataFrame/Series.
+    A forecast with or without prediction intervals, 
+    as either a list/tuple or as a Pandas DataFrame/Series.
   '''
   if mean_only:
     result = list(fc.rx2('mean'))
@@ -62,11 +62,14 @@ def _extract_forecast(fc, horizon, mean_only, as_pandas):
 
   
 def _base_forecast(method, data, start, frequency, 
-                  horizon, mean_only, as_pandas):
+                  horizon, mean_only, as_pandas, **kwargs):
   '''
   Function for internal use to get a forecast from an R Forecast 
   function with call like:  method(data, horizon). Used for mean, 
   theta, random walk, and naive forecasts.
+  
+  It is the caller's responsibility to ensure that any **kwargs 
+  are in the signature of the called function.
   
   Args:
     method - a string; name of a forecasting function in R
@@ -77,6 +80,9 @@ def _base_forecast(method, data, start, frequency,
     horizon - number of steps ahead to forecast
     mean_only - if True, return only the mean prediction.
     as_pandas  - if True, return a Pandas DataFrame or Series
+    kwargs - a dict of name:value pairs for parameters that are specific
+        to one of the forecast models. 
+        Example: {'drift':True} in an rwf forecast.
 
   Returns:
     A forecast with or without prediction intervals, as either a list/tuple
@@ -84,7 +90,7 @@ def _base_forecast(method, data, start, frequency,
   '''
   time_series = _ts(data, start=start, frequency=frequency)
   fc_method = robjects.r(method)
-  fc = fc_method(time_series, h=horizon)
+  fc = fc_method(time_series, h=horizon, **kwargs)
   return _extract_forecast(fc, horizon, mean_only, as_pandas)
 
 
@@ -161,6 +167,54 @@ def naive(data, start=1, frequency=1, horizon=10,
                        horizon, mean_only, as_pandas)
 
 
+def snaive(data, start=1, frequency=1, horizon=10, 
+          mean_only=False, as_pandas=True):
+  '''
+  Perform a seasonal naive forecast on the provided data by calling 
+  snaive() from R Forecast. This is also called the 'Last Observed 
+  Seasonal Value' forecast. The point forecast is the value of the 
+  series one full period in the past.
+  
+  Args:
+    data - Python sequence representing values of a regular time series.
+    start - default 1; a number to use as start index of sequence
+    frequency - default 1; number of points in each time period.
+        e.g. 12 for monthly data with an annual period
+    horizon - default 10; number of steps ahead to forecast
+    mean_only - default False; if True, return only the mean prediction.
+    as_pandas  - default True; if True, return a Pandas DataFrame or Series
+
+  Returns:
+    A mean forecast with or without prediction intervals, as either 
+    a list/tuple or as a Pandas DataFrame/Series.
+  '''
+  return _base_forecast('snaive', data, start, frequency, 
+                       horizon, mean_only, as_pandas)
+
+
+def rwf(data, drift=False, start=1, frequency=1, horizon=10, 
+          mean_only=False, as_pandas=True):
+  '''
+  Perform a random walk forecast on the provided data by calling 
+  rwf() from R Forecast. The forecast can have drift, which allows 
+  a trend in the mean prediction, but by default, it does not.
+  
+  Args:
+    data - Python sequence representing values of a regular time series.
+    drift - default False; if true, allow drift
+    start - default 1; a number to use as start index of sequence
+    frequency - default 1; number of points in each time period.
+        e.g. 12 for monthly data with an annual period
+    horizon - default 10; number of steps ahead to forecast
+    mean_only - default False; if True, return only the mean prediction.
+    as_pandas  - default True; if True, return a Pandas DataFrame or Series
+
+  Returns:
+    A mean forecast with or without prediction intervals, as either 
+    a list/tuple or as a Pandas DataFrame/Series.
+  '''
+  return _base_forecast('rwf', data, start, frequency, horizon, 
+                        mean_only, as_pandas, drift=drift)
 
 
 

@@ -5,14 +5,14 @@ import pandas as pd
 
 forecast = importr('forecast')
 
-
-def _ts(data, start=1, frequency=1):
+def ts(data, start=1, frequency=1):
   '''
   Utility function to turn input Python sequences into R time series.  
   
   Args:
     data - Python sequence representing values of a regular time series.
-    start - default 1; a number to use as start index of sequence
+    start - default 1; a number or 2-tuple to use as start index of sequence
+      If 2-tuple, it is (period, step), e.g. March 2010 is (2010, 3).
     frequency - default 1; number of points in each time period.
         e.g. 12 for monthly data with an annual period
 
@@ -21,6 +21,8 @@ def _ts(data, start=1, frequency=1):
   '''
   ts = robjects.r('ts')
   rdata = robjects.FloatVector(data)
+  if type(start) == tuple:
+    start = robjects.r.c(*start)
   time_series = ts(rdata, start=start, frequency=frequency)  
   return time_series
 
@@ -215,6 +217,16 @@ def rwf(data, drift=False, start=1, frequency=1, horizon=10,
   '''
   return _base_forecast('rwf', data, start, frequency, horizon, 
                         mean_only, as_pandas, drift=drift)
+
+
+
+
+
+
+
+
+
+
 
 
 

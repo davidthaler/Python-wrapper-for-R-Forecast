@@ -1,7 +1,5 @@
 from rpy2 import robjects
 from rpy2.robjects.packages import importr
-import numpy as np
-import pandas as pd
 
 
 forecast = importr('forecast')
@@ -29,42 +27,6 @@ def ts(data, start=1, frequency=1):
     start = robjects.r.c(*start)
   time_series = ts(rdata, start=start, frequency=frequency)  
   return time_series
-
-
-def extract_forecast(fc, horizon, mean_only, as_pandas):
-  '''
-  Utility function to extract the desired elements from a completed forecast 
-  and return them as either Python or Pandas objects.
-  
-  Args:
-    fc - an object with class forecast from R Forecast
-    horizon - number of steps ahead in the forecast
-    mean_only - if True, return only the mean prediction.
-    as_pandas  - if True, return a Pandas DataFrame or Series
-    
-  Returns:
-    A forecast with or without prediction intervals, 
-    as either a list/tuple or as a Pandas DataFrame/Series.
-  '''
-  if mean_only:
-    result = list(fc.rx2('mean'))
-    if as_pandas:
-      return pd.Series(result)
-    else: 
-      return result
-  else:
-    lower_95 = list(fc.rx2('lower')[horizon:])
-    lower_80 = list(fc.rx2('lower')[:horizon])
-    mean_fc  = list(fc.rx2('mean'))
-    upper_80 = list(fc.rx2('upper')[:horizon])
-    upper_95 = list(fc.rx2('upper')[horizon:])
-    results = (lower_95, lower_80, mean_fc, upper_80, upper_95)
-    if as_pandas:
-      cols = ['lower95','lower80','point_forecast','upper80','upper95']
-      df = pd.DataFrame(dict(zip(cols, results)))
-      return df[cols]
-    else:
-      return results
   
   
 def meanf(x, h=10, lam=NULL):

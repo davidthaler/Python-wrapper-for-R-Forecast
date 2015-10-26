@@ -3,21 +3,25 @@ from rpy2.robjects.packages import importr
 import numpy as np
 import pandas as pd
 
+
 forecast = importr('forecast')
+frequency = robjects.r('frequency')
+NULL = robjects.NULL
+
 
 def ts(data, start=1, frequency=1):
   '''
-  Utility function to turn input Python sequences into R time series.  
+  Turns the provided data into an R time series. 
   
   Args:
     data - Python sequence representing values of a regular time series.
-    start - default 1; a number or 2-tuple to use as start index of sequence
+    start - default 1; a number or 2-tuple to use as start index of sequence.
       If 2-tuple, it is (period, step), e.g. March 2010 is (2010, 3).
     frequency - default 1; number of points in each time period.
         e.g. 12 for monthly data with an annual period
 
   Returns:
-    an object that maps to an R time series (ts class)
+    an object that maps to an R time series (class 'ts')
   '''
   ts = robjects.r('ts')
   rdata = robjects.FloatVector(data)
@@ -27,7 +31,7 @@ def ts(data, start=1, frequency=1):
   return time_series
 
 
-def _extract_forecast(fc, horizon, mean_only, as_pandas):
+def extract_forecast(fc, horizon, mean_only, as_pandas):
   '''
   Utility function to extract the desired elements from a completed forecast 
   and return them as either Python or Pandas objects.
@@ -61,66 +65,27 @@ def _extract_forecast(fc, horizon, mean_only, as_pandas):
       return df[cols]
     else:
       return results
-
   
-def _base_forecast(method, data, start, frequency, 
-                  horizon, mean_only, as_pandas, **kwargs):
-  '''
-  Function for internal use to get a forecast from an R Forecast 
-  function with call like:  method(data, horizon). Used for mean, 
-  theta, random walk, and naive forecasts.
   
-  It is the caller's responsibility to ensure that any **kwargs 
-  are in the signature of the called function.
-  
-  Args:
-    method - a string; name of a forecasting function in R
-    data - Python sequence representing values of a regular time series.
-    start - a number to use as start index of sequence
-    frequency - number of points in each time period.
-        e.g. 12 for monthly data with an annual period
-    horizon - number of steps ahead to forecast
-    mean_only - if True, return only the mean prediction.
-    as_pandas  - if True, return a Pandas DataFrame or Series
-    kwargs - a dict of name:value pairs for parameters that are specific
-        to one of the forecast models. 
-        Example: {'drift':True} in an rwf forecast.
-
-  Returns:
-    A forecast with or without prediction intervals, as either a list/tuple
-    or as a Pandas DataFrame/Series.
-  '''
-  time_series = _ts(data, start=start, frequency=frequency)
-  fc_method = robjects.r(method)
-  fc = fc_method(time_series, h=horizon, **kwargs)
-  return _extract_forecast(fc, horizon, mean_only, as_pandas)
-
-
-def meanf(data, start=1, frequency=1, horizon=10, 
-          mean_only=False, as_pandas=True):
+def meanf(x, h=10, lam=NULL):
   '''
   Perform a mean forecast on the provided data by calling meanf() 
   from R Forecast.
   
   Args:
-    data - Python sequence representing values of a regular time series.
-    start - default 1; a number to use as start index of sequence
-    frequency - default 1; number of points in each time period.
-        e.g. 12 for monthly data with an annual period
-    horizon - default 10; number of steps ahead to forecast
-    mean_only - default False; if True, return only the mean prediction.
-    as_pandas  - default True; if True, return a Pandas DataFrame or Series
+    x - an R time series, obtained from forecast_wrapper.ts()
+    h - default 10; the forecast horizon.
+    lam - BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
 
   Returns:
-    A mean forecast with or without prediction intervals, as either 
-    a list/tuple or as a Pandas DataFrame/Series.
+    an object that maps to an R object of class 'forecast'
   '''
-  return _base_forecast('meanf', data, start, frequency, 
-                       horizon, mean_only, as_pandas)
+  return forecast.meanf(x, h, **{'lambda' : lam})
   
   
-def thetaf(data, start=1, frequency=1, horizon=10, 
-          mean_only=False, as_pandas=True):
+def thetaf(x, h=10):
   '''
   Perform a theta forecast on the provided data by calling thetaf() 
   from R Forecast. The theta forecast is equivalent to a random walk 
@@ -129,48 +94,35 @@ def thetaf(data, start=1, frequency=1, horizon=10,
   theta forecast did well in the M3 competition.
   
   Args:
-    data - Python sequence representing values of a regular time series.
-    start - default 1; a number to use as start index of sequence
-    frequency - default 1; number of points in each time period.
-        e.g. 12 for monthly data with an annual period
-    horizon - default 10; number of steps ahead to forecast
-    mean_only - default False; if True, return only the mean prediction.
-    as_pandas  - default True; if True, return a Pandas DataFrame or Series
+    x - an R time series, obtained from forecast_wrapper.ts()
+    h - default 10; the forecast horizon.
 
   Returns:
-    A theta forecast with or without prediction intervals, as either 
-    a list/tuple or as a Pandas DataFrame/Series.
+    an object that maps to an R object of class 'forecast'
   '''
-  return _base_forecast('thetaf', data, start, frequency, 
-                       horizon, mean_only, as_pandas)
+  return forecast.thetaf(x, h)
 
 
-def naive(data, start=1, frequency=1, horizon=10, 
-          mean_only=False, as_pandas=True):
+def naive(x, h=10, lam=NULL):
   '''
   Perform a naive forecast on the provided data by calling naive() 
   from R Forecast. This is also called the 'Last Observed Value' 
   forecast. The point forecast is a constant at the last observed value.
   
   Args:
-    data - Python sequence representing values of a regular time series.
-    start - default 1; a number to use as start index of sequence
-    frequency - default 1; number of points in each time period.
-        e.g. 12 for monthly data with an annual period
-    horizon - default 10; number of steps ahead to forecast
-    mean_only - default False; if True, return only the mean prediction.
-    as_pandas  - default True; if True, return a Pandas DataFrame or Series
+    x - an R time series, obtained from forecast_wrapper.ts()
+    h - default 10; the forecast horizon.
+    lam - BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
 
   Returns:
-    A mean forecast with or without prediction intervals, as either 
-    a list/tuple or as a Pandas DataFrame/Series.
+    an object that maps to an R object of class 'forecast'
   '''
-  return _base_forecast('naive', data, start, frequency, 
-                       horizon, mean_only, as_pandas)
+  return forecast.naive(x, h, **{'lambda' : lam})
 
 
-def snaive(data, start=1, frequency=1, horizon=10, 
-          mean_only=False, as_pandas=True):
+def snaive(x, h=None, lam=NULL):
   '''
   Perform a seasonal naive forecast on the provided data by calling 
   snaive() from R Forecast. This is also called the 'Last Observed 
@@ -178,45 +130,39 @@ def snaive(data, start=1, frequency=1, horizon=10,
   series one full period in the past.
   
   Args:
-    data - Python sequence representing values of a regular time series.
-    start - default 1; a number to use as start index of sequence
-    frequency - default 1; number of points in each time period.
-        e.g. 12 for monthly data with an annual period
-    horizon - default 10; number of steps ahead to forecast
-    mean_only - default False; if True, return only the mean prediction.
-    as_pandas  - default True; if True, return a Pandas DataFrame or Series
+    x - an R time series, obtained from forecast_wrapper.ts()
+      For this forecast method, x should be periodic.
+    h - Forecast horizon; default is 2 full periods of a periodic series
+    lam - BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
 
   Returns:
-    A mean forecast with or without prediction intervals, as either 
-    a list/tuple or as a Pandas DataFrame/Series.
+    an object that maps to an R object of class 'forecast'
   '''
-  return _base_forecast('snaive', data, start, frequency, 
-                       horizon, mean_only, as_pandas)
+  if h is None:
+    h = 2 * frequency(x)[0]
+  return forecast.snaive(x, h, **{'lambda' : lam})
 
 
-def rwf(data, drift=False, start=1, frequency=1, horizon=10, 
-          mean_only=False, as_pandas=True):
+def rwf(x, h=10, drift=False, lam=NULL):
   '''
   Perform a random walk forecast on the provided data by calling 
   rwf() from R Forecast. The forecast can have drift, which allows 
   a trend in the mean prediction, but by default, it does not.
   
   Args:
-    data - Python sequence representing values of a regular time series.
-    drift - default False; if true, allow drift
-    start - default 1; a number to use as start index of sequence
-    frequency - default 1; number of points in each time period.
-        e.g. 12 for monthly data with an annual period
-    horizon - default 10; number of steps ahead to forecast
-    mean_only - default False; if True, return only the mean prediction.
-    as_pandas  - default True; if True, return a Pandas DataFrame or Series
+    x - an R time series, obtained from forecast_wrapper.ts()
+    h - default 10; the forecast horizon.
+    drift - default False. If True, a random walk with drift model is fitted.
+    lam - BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
 
   Returns:
-    A mean forecast with or without prediction intervals, as either 
-    a list/tuple or as a Pandas DataFrame/Series.
+    an object that maps to an R object of class 'forecast'
   '''
-  return _base_forecast('rwf', data, start, frequency, horizon, 
-                        mean_only, as_pandas, drift=drift)
+  return forecast.rwf(x, h, drift, **{'lambda' : lam})
 
 
 

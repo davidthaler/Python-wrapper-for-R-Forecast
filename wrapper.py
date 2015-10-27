@@ -3,9 +3,10 @@ from rpy2.robjects.packages import importr
 
 
 forecast = importr('forecast')
-frequency = robjects.r('frequency')
+# TODO: replace with a Python function that extracts the first(only) element
+frequency = robjects.r('frequency')       
 NULL = robjects.NULL
-
+NA = robjects.NA_Real
 
 def ts(data, start=1, frequency=1):
   '''
@@ -127,11 +128,132 @@ def rwf(x, h=10, drift=False, lam=NULL):
   return forecast.rwf(x, h, drift, **{'lambda' : lam})
 
 
+def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL, 
+        beta=NULL, gamma=NULL, phi=NULL, additive_only=False, lam=NULL,
+        opt_crit='lik', nmse=3, ic='aicc', allow_multiplicative_trend=False):
+  '''
+  Automatically select and fit an exponential smoothing model on the 
+  provided data using the ets() function from the R Forecast package, 
+  and use it to produce a forecast over the given horizon.
+  
+  Args:
+    x - an R time series, obtained from forecast_wrapper.ts()
+        For this forecast method, x should be periodic.
+    h - Forecast horizon; default is 2 full periods of a periodic series,
+        or 10 steps for non-seasonal series.
+    model_spec - Default is 'ZZZ'. A 3-letter string denoting the model type.
+        Letters denote error, trend, and seasonal parts: A=additive, 
+        N=none, M=multiplicative, Z=automatically selected. Legal 
+        values for first part are (A, M, Z), all values are legal 
+        for other parts.
+    damped - If True, use a damped trend model. 
+        Default is NULL, which tries damped/undamped models and 
+        selects best model according to the selected ic.
+    alpha - Smoothing parameter for error term. 
+        Default is NULL, which fits this value.
+    beta - Smoothing paramter for trend component. 
+        Default is NULL, which fits this value.
+    gamma - Smoothing parameter for seasonal component. 
+        Default is NULL, which fits this value.
+    phi - Damping parameter. Default is NULL, which fits this value.
+    additive_only - Default False. If True, only try additive models.
+    lam - BoxCox transformation parameter. The default is R's NULL value.
+        If NULL, no transformation is applied. Otherwise, a Box-Cox 
+        transformation is applied before forecasting and inverted after.
+    opt_crit - Optimization criterion. Default is 'lik' for log-likelihood. 
+        Other values are 'mse' (mean squared error), 'amse' (MSE averaged 
+        over first nmse forecast horizons), 'sigma' (standard deviation of 
+        residuals), and 'mae' (mean absolute error).
+    nmse - number of steps in average MSE, if 'amse' is opt_crit.
+        Restricted to 1 <= nmse <= 10.
+    ic - information crierion. Default is 'aicc' for bias-corrected AIC.
+        Other values are 'aic' for regular AIC, or 'bic' for BIC.
+    allow_multiplicative_trend - Default is False. If True, consider models 
+        with a multiplicative trend component. That type of model may grow 
+        explosively.
+        
+  Returns:
+    an object that maps to an R object of class 'forecast'
+  '''
+  kwargs = {'allow.multiplicative.trend' : allow_multiplicative_trend, 
+            'additive.only' : additive_only, 
+            'opt.crit' : opt_crit,
+            'lambda' : lam}
+  ets_model = forecast.ets(x, model=model_spec, damped=damped, alpha=alpha, 
+                       beta=beta, gamma=gamma, phi=phi, ic=ic, **kwargs)
+  if h is None:
+    if frequency(x)[0] > 1:
+      h = 2 * frequency(x)[0]
+    else:
+      h = 10
+  # NB: default lambda is correct - it will be taken from model
+  return forecast.forecast_ets(ets_model, h)
 
 
+def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
+               max_order=5, max_d=2, max_D=1, start_p=2, start_q=2, 
+               start_P=1, start_Q=1, stationary=False, seasonal=True, 
+               ic='aicc', xreg=NULL, newxreg=NULL, test='kpss', 
+               seasonal_test='ocsb', lam=NULL):
+  '''
+  Use the auto.arima function from the R Forecast package to automatically 
+  select an arima model order, fit the model to the provided data, and 
+  generate a forecast.
+  
+  Args:
+    x - an R time series, obtained from forecast_wrapper.ts()
+        For this forecast method, x should be periodic.
+    h - Forecast horizon; default is 2 full periods of a periodic series,
+        or 10 steps for non-seasonal series.
+    d - order of first differencing. Default is NA, which selects this 
+        value based on the value of 'test' (KPSS test by default).
+    D - order of seasonal differencing. Default is NA, which selects this 
+        value based on 'seasonal_test' (OCSB test by default).
+    max_p - maximum value for non-seasonal AR order
+    max_q - maximum value for non-seasonal MA order
+    max_P - maximum value for seasonal AR order
+    max_Q - maximum value for seasonal MA order
+    max_order - maximum value of p + q + P + Q
+    start_p - starting value for non-seasonal AR order
+    start_q - starting value for non-seasonal MA order
+    start_P - starting value for seasonal AR order
+    start_Q - starting value for seasonal MA order
+    stationary - Default is False. If True, only consider stationary models.
+    seasonal - Default is True. If False, only consider non-seasonal models.
+    ic - information crierion. Default is 'aicc' for bias-corrected AIC.
+        Other values are 'aic' for regular AIC, or 'bic' for BIC.
+    xreg - An optional vector or matrix of regressors, which must have one 
+        row/element for each point in x. Default is NULL, for no regressors.
+    newxreg - If regressors were used to fit the model, then they must be 
+        supplied for the forecast period as newxreg.
+    test - Test to use to determine number of first differences. Default 
+        is 'kpss', for the KPSS test. Other values are 'adf' for augmented 
+        Dickey-Fuller, or 'pp' for Phillips-Perron.
+    seasonal_test - Test to use to determine number of seasonal differences.
+        Default is 'ocsb' for the Osborn-Chui-Smith-Birchenhall  test. 
+        The alternative is 'ch' for the Canova-Hansen test. 
+    lam - BoxCox transformation parameter. The default is R's NULL value.
+        If NULL, no transformation is applied. Otherwise, a Box-Cox 
+        transformation is applied before forecasting and inverted after.
 
-
-
+  Returns:
+    an object that maps to an R object of class 'forecast'
+  '''
+  kwargs = {'max.p' : max_p, 'max.q' : max_q, 'max.P' : max_P, 
+            'max.Q' : max_Q, 'max.order' : max_order, 'max.d' : max_d, 
+            'max.D' : max_D, 'start.p' : start_p, 'start.q' : start_q, 
+            'start.P' : start_P, 'start.Q' : start_Q, 
+            'seasonal.test' : seasonal_test, 'lambda' : lam}
+  arima_model = forecast.auto_arima(x, d=d, D=D, stationary=stationary, 
+                                    seasonal=seasonal, ic=ic, xreg=xreg, 
+                                    test=test, **kwargs)
+  if h is None:
+    if frequency(x)[0] > 1:
+      h = 2 * frequency(x)[0]
+    else:
+      h = 10
+  # NB: default lambda is correct - it will be taken from model
+  return forecast.forecast_Arima(arima_model, h, xreg=newxreg)
 
 
 

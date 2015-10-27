@@ -3,11 +3,26 @@ from rpy2.robjects.packages import importr
 
 
 forecast = importr('forecast')
-# TODO: replace with a Python function that extracts the first(only) element
-frequency = robjects.r('frequency')       
 NULL = robjects.NULL
 NA = robjects.NA_Real
 
+
+def frequency(x):
+  '''
+  Function returns the frequency attribute of an R time series. 
+  This should be  1 if the series is non-periodic. Otherwise, it should be 
+  the number of data points in one period, e.g. 12 for monthly data. 
+  
+  Args:
+    x - an R time series, obtained from forecast_wrapper.ts()
+
+  Returns:
+    The number of data points per period in x, as a single float
+  '''
+  f = robjects.r('frequency') 
+  return f(x)[0]
+  
+  
 def ts(data, start=1, frequency=1):
   '''
   Turns the provided data into an R time series. 
@@ -104,7 +119,7 @@ def snaive(x, h=None, lam=NULL):
     an object that maps to an R object of class 'forecast'
   '''
   if h is None:
-    h = 2 * frequency(x)[0]
+    h = 2 * frequency(x)
   return forecast.snaive(x, h, **{'lambda' : lam})
 
 
@@ -182,8 +197,8 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
   ets_model = forecast.ets(x, model=model_spec, damped=damped, alpha=alpha, 
                        beta=beta, gamma=gamma, phi=phi, ic=ic, **kwargs)
   if h is None:
-    if frequency(x)[0] > 1:
-      h = 2 * frequency(x)[0]
+    if frequency(x) > 1:
+      h = 2 * frequency(x)
     else:
       h = 10
   # NB: default lambda is correct - it will be taken from model
@@ -248,8 +263,8 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
                                     seasonal=seasonal, ic=ic, xreg=xreg, 
                                     test=test, **kwargs)
   if h is None:
-    if frequency(x)[0] > 1:
-      h = 2 * frequency(x)[0]
+    if frequency(x) > 1:
+      h = 2 * frequency(x)
     else:
       h = 10
   # NB: default lambda is correct - it will be taken from model

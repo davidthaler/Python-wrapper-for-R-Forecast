@@ -38,6 +38,40 @@ def prediction_intervals(fc):
   return df[cols]
   
 
+def decomposition(decomp):
+  '''
+  Function creates a Pandas DataFrame with the seasonal, trend and remainder 
+  components of a seasonal decomposition, along with the original series, in 
+  separate columns.
+  
+  Args:
+    decomp - An object that maps to a seasonal decomposition (class 'stl' 
+      or 'decomposed.ts' in R), otained from stl or decompose in wrapper.
+      
+  Returns:
+    a Pandas DataFrame with the seasonal, trend and remainder
+  '''
+  cls = robjects.r('class')
+  if cls(decomp)[0] == 'stl':
+    data = decomp.rx2('time.series')
+    r, c = tuple(data.dim)
+    seasonal = list(data[:r])
+    trend = list(data[r:(2*r)])
+    remainder = list(data[(2*r):(3*r)])
+    cols = ['seasonal', 'trend', 'remainder']
+    df = pd.DataFrame(dict(zip(cols, (seasonal, trend, remainder))))
+    df['data'] = df.sum(axis=1)
+    return df[['data', 'seasonal', 'trend', 'remainder']]
+  elif cls(decomp)[0] == 'decomposed.ts':
+    x = list(decomp.rx2('x'))
+    seasonal = list(decomp.rx2('seasonal'))
+    trend = list(decomp.rx2('trend'))
+    remainder = list(decomp.rx2('random'))
+    cols = ['data', 'seasonal', 'trend', 'remainder']
+    df = pd.DataFrame(dict(zip(cols, (x, seasonal, trend, remainder))))
+    return df[cols]
+  else:
+    raise ValueError('Argument must map to an R seasonal decomposition.')
 
 
 

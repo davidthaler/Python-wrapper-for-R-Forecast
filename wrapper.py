@@ -37,11 +37,10 @@ def ts(data, start=1, frequency=1):
   Returns:
     an object that maps to an R time series (class 'ts')
   '''
-  ts = robjects.r('ts')
   rdata = robjects.FloatVector(data)
   if type(start) == tuple:
     start = robjects.r.c(*start)
-  time_series = ts(rdata, start=start, frequency=frequency)  
+  time_series = stats.ts(rdata, start=start, frequency=frequency)  
   return time_series
   
   

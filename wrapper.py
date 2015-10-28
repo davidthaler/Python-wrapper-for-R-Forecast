@@ -3,6 +3,7 @@ from rpy2.robjects.packages import importr
 
 
 forecast = importr('forecast')
+stats = importr('stats')
 NULL = robjects.NULL
 NA = robjects.NA_Real
 
@@ -19,8 +20,7 @@ def frequency(x):
   Returns:
     The number of data points per period in x, as a single float
   '''
-  f = robjects.r('frequency') 
-  return f(x)[0]
+  return stats.frequency(x)[0]
   
   
 def ts(data, start=1, frequency=1):
@@ -109,7 +109,7 @@ def snaive(x, h=None, lam=NULL):
   
   Args:
     x - an R time series, obtained from forecast_wrapper.ts()
-      For this forecast method, x should be periodic.
+      For this forecast method, x should be seasonal.
     h - Forecast horizon; default is 2 full periods of a periodic series
     lam - BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
@@ -271,7 +271,169 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
   return forecast.forecast_Arima(arima_model, h, xreg=newxreg)
 
 
+def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets', 
+         etsmodel='ZZZ', xreg=NULL, newxreg=NULL):
+  '''
+  Constructs a forecast of a seasonal time series by seasonally decomposing 
+  it using an STL decomposition, then making a non-seasonal forecast on the 
+  seasonally adjusted data, and finally adding the naively extended seasonal 
+  component on to the forecast.
+  
+  Args:
+    x - an R time series, obtained from forecast_wrapper.ts()
+      For this forecast method, x should be seasonal.
+    h - Forecast horizon; default is 2 full periods of a periodic series
+    s.window - either 'periodic' or the span (in lags) of the 
+      loess window for seasonal extraction, which should be odd.
+    robust - If True, use robust fitting in the loess procedure.
+    lam - BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
+    method - One of 'ets' or 'arima'; default is 'ets'. Specifies the type 
+      of model to use for forecasting the non-seasonal part.
+    etsmodel - Default is 'ZZZ'. This is only used if 'method' is 'ets'.
+      A 3-letter string denoting the ets model type.
+      Letters denote error, trend, and seasonal parts: A=additive, 
+      N=none, M=multiplicative, Z=automatically selected. Legal 
+      values for first part are (A, M, Z), all values are legal 
+      for other parts.
+    xreg - Only available if 'method' is arima. An optional vector or matrix 
+      of regressors, which must have one row/element for each point in x. 
+      Default is NULL, for no regressors.
+    newxreg - Only available if 'method' is arima. If regressors are used in 
+      fitting, then they must be supplied for the forecast period as newxreg.
+        
+  Returns:
+    an object that maps to an R object of class 'forecast'
+  '''
+  if h is None:
+    h = 2 * frequency(x)
+  kwargs = {'s.window' : s_window,
+            'lambda' : lam}
+  return forecast.stlf(x, h, robust=robust, method=method, etsmodel=etsmodel, 
+              xreg=xreg, newxreg=newxreg, **kwargs)
 
+
+def stl(x, s_window, robust=False):
+  '''
+  Perform a decomposition of the time series x into seasonal, trend and 
+  remained components using loess.
+  
+  Args:
+    x - an R time series, obtained from forecast_wrapper.ts()
+      For this forecast method, x should be seasonal.
+    s.window - either 'periodic' or the span (in lags) of the 
+      loess window for seasonal extraction, which should be odd.
+    robust - If True, use robust fitting in the loess procedure.
+      
+  Returns:
+    an object that maps to an R STL decomposition (class 'stl')
+  '''
+  kwargs = {'s.window' : s_window}
+  return stats.stl(x, robust=robust, **kwargs)
+  
+
+def decompose(x, type='additive'):
+  '''
+  Performs a classical seasonal decomposition of a time series into 
+  season, trend and remainder components.
+  
+  Args:
+    x - an R time series, obtained from forecast_wrapper.ts()
+      The series should be seasonal.
+    type - Type of seasonal decomposition to perform.
+      Default is 'additive', other option is 'multiplicative'.
+      
+  Returns:
+    a seasonal decomposition of the time series x, contained in an 
+    object that maps to an R object of class 'decomposed.ts'.
+  '''
+  return stats.decompose(x, type=type)
+
+  
+def seasadj(decomp):
+  '''
+  Return a seasonally adjusted version of the origin time series that 
+  was seasonally decomposed to get decomp.
+  
+  Args:
+    decomp - a seasonal decomposition from stl or decompose
+    
+  Returns:
+    an object that maps an R time series of the seasonally adjusted
+    values of the series that decomp was formed from
+  '''
+  return forecast.seasadj(decomp)
+
+
+def sindexf(decomp, h):
+  '''
+  Projects the seasonal component of a seasonal decomposition of a time series 
+  forward by h time steps into the future.
+  
+  Args:
+    decomp - a seasonal decomposition from stl or decompose
+    h - a forecast horizon
+    
+  Returns:
+    an object that maps to am R time series containing the seasonal component 
+    of decomp, projected naively forward h steps.
+  '''
+  return forecast.sindexf(x, h)
+  
+  
+def BoxCox(x, lam):
+  '''
+  Applies a Box-Cox transformation to the data in x. This can stabilize the 
+  variance of x, so that forecast model assumptions are more nearly satisfied.
+  
+  For x != 0, this is (x^lambda - 1) / lambda.
+  For x = 0, it is log(x).
+  
+  Args:
+    x - an R time series, obtained from forecast_wrapper.ts()
+    lam - BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
+      
+  Returns:
+    an object that maps to an R time series containing x, tranformed
+  '''
+  return forecast.BoxCox(x, **{'lambda' : lam})
+  
+  
+def InvBoxCox(x, lam):
+  '''
+  Invert a BoxCox transformation.
+  
+  Args:
+    x - an R time series, with values that are on the scale of a BoxCox
+      transformation with parameter lambda=lam
+    lam - BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
+      
+  Returns:
+    an R timeseries with values of x transformed back to the original scale
+  '''
+  return forecast.InvBoxCox(x, **{'lambda' : lam})
+  
+  
+def BoxCox_lambda(x, method='guerrero', lower=-1, upper=2):
+  '''
+  Function to find a good value of the BoxCox transformation parameter, lambda.
+  
+  Args:
+    x - an R time series, obtained from forecast_wrapper.ts()
+    method - Method of calculating lambda. 
+      Default is 'guerrero', other option is 'lik' for log-likelihood.
+    upper - Upper limit of possible lambda values, default 2.
+    lower - Lower limit of possible lambda values, default -1.
+    
+  Returns:
+    value of lambda for the series x, as calculated by the selected method
+  '''
+  return forecast.BoxCox_lambda(x, method=method, lower=lower, upper=upper)
 
 
 

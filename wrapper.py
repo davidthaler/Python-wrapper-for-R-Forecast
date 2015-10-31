@@ -23,28 +23,86 @@ def frequency(x):
   return stats.frequency(x)[0]
   
   
-def ts(data, start=1, frequency=1):
+def ts(data, start=1, frequency=1, deltat=1, **kwargs):
   '''
-  Turns the provided data into an R time series. 
+  Turns the provided data into an R time series. Only one of frequency and 
+  deltat should be given.
   
   Args:
     data - Python sequence representing values of a regular time series.
     start - default 1; a number or 2-tuple to use as start index of sequence.
       If 2-tuple, it is (period, step), e.g. March 2010 is (2010, 3).
-    frequency - default 1; number of points in each time period.
-        e.g. 12 for monthly data with an annual period
+    end - By default this is not specified, which is usually right. 
+      A number or 2-tuple (like start) to specify the end of the sequence.
+      If both of start and end are specified, truncation or recycling may 
+      occur, which is usually not sensible.
+    frequency - default 1; number of points in each time period
+      e.g. 12 for monthly data with an annual period
+    deltat - default 1; fraction of sampling period per observation 
+      e.g. 1/12 for monthly data with an annual period. Only one of deltat 
+      and frequency should be defined.
 
   Returns:
     an object that maps to an R time series (class 'ts')
   '''
   rdata = robjects.FloatVector(data)
-  if type(start) == tuple:
-    start = robjects.r.c(*start)
-  time_series = stats.ts(rdata, start=start, frequency=frequency)  
+  start = map_arg(start)
+  kwargs = translate_kwargs(**kwargs)
+  time_series = stats.ts(rdata, start=start, frequency=frequency, 
+                         deltat=deltat, **kwargs)
   return time_series
   
   
-def meanf(x, h=10, lam=NULL):
+def map_arg(x):
+  '''
+  Many arguments in R may be either numbers or vectors. Rpy2 translates 
+  arguments that are numbers automatically, but does not translate tuples 
+  or lists to R vectors. This function translates tuples or lists to R 
+  vectors, if needed.
+  
+  Args:
+    x - a number or list/tuple
+    
+  Returns:
+    either an R vector containing the values in x, or the number x
+  '''
+  if type(x) in (tuple, list):
+    return robjects.r.c(*x)
+  else:
+    return x
+  
+  
+def translate_kwargs(**kwargs):
+  '''
+  Translates between python and R keyword arguments. 
+  First, tuple arguments are rewritten to R vectors. Next, substitution 
+  is performed for a specific list of arguments. Currently, this is just 
+  'lam' -> 'lambda'; 'lambda' is a reserved word in python, but is used 
+  a lot in the R Forecast package. Finally, underscore-separated keywords 
+  are turned into R-style, dot-separated ones. If you need to pass an R 
+  argument that has an underscore, you must put it into the 'reserved' dict.
+  
+  Args:
+    **kwargs - the dict of all keyword arguments to a python function
+    
+  Returns:
+    A dict that can be passed as **kwargs to R functions
+  '''
+  reserved = {'lam':'lambda'}
+  for key in kwargs:
+    if type(kwargs[key]) in (list, tuple):
+      kwargs[key] = robjects.r.c(*kwargs[key])
+    if key in reserved:
+      kwargs[reserved[key]] = kwargs[key]
+      del kwargs[key]
+    elif '_' in key:
+      new_key = key.replace('_', '.')
+      kwargs[new_key] = kwargs[key]
+      del kwargs[key]
+  return kwargs
+  
+  
+def meanf(x, h=10, level=(80,95), lam=NULL):
   '''
   Perform a mean forecast on the provided data by calling meanf() 
   from R Forecast.
@@ -52,6 +110,8 @@ def meanf(x, h=10, lam=NULL):
   Args:
     x - an R time series, obtained from forecast_wrapper.ts()
     h - default 10; the forecast horizon.
+    level - A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
     lam - BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
@@ -59,10 +119,11 @@ def meanf(x, h=10, lam=NULL):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  return forecast.meanf(x, h, **{'lambda' : lam})
+  level = map_arg(level)
+  return forecast.meanf(x, h, level=level, **{'lambda' : lam})
   
   
-def thetaf(x, h=10):
+def thetaf(x, h=10, level=(80, 95)):
   '''
   Perform a theta forecast on the provided data by calling thetaf() 
   from R Forecast. The theta forecast is equivalent to a random walk 
@@ -73,14 +134,17 @@ def thetaf(x, h=10):
   Args:
     x - an R time series, obtained from forecast_wrapper.ts()
     h - default 10; the forecast horizon.
-
+    level - A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
+      
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  return forecast.thetaf(x, h)
+  level = map_arg(level)
+  return forecast.thetaf(x, h, level=level)
 
 
-def naive(x, h=10, lam=NULL):
+def naive(x, h=10, level=(80, 95), lam=NULL):
   '''
   Perform a naive forecast on the provided data by calling naive() 
   from R Forecast. This is also called the 'Last Observed Value' 
@@ -89,6 +153,8 @@ def naive(x, h=10, lam=NULL):
   Args:
     x - an R time series, obtained from forecast_wrapper.ts()
     h - default 10; the forecast horizon.
+    level - A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
     lam - BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
@@ -96,10 +162,11 @@ def naive(x, h=10, lam=NULL):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  return forecast.naive(x, h, **{'lambda' : lam})
+  level = map_arg(level)
+  return forecast.naive(x, h, level=level, **{'lambda' : lam})
 
 
-def snaive(x, h=None, lam=NULL):
+def snaive(x, h=None, level=(80, 95), lam=NULL):
   '''
   Perform a seasonal naive forecast on the provided data by calling 
   snaive() from R Forecast. This is also called the 'Last Observed 
@@ -110,6 +177,8 @@ def snaive(x, h=None, lam=NULL):
     x - an R time series, obtained from forecast_wrapper.ts()
       For this forecast method, x should be seasonal.
     h - Forecast horizon; default is 2 full periods of a periodic series
+    level - A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
     lam - BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
@@ -119,10 +188,11 @@ def snaive(x, h=None, lam=NULL):
   '''
   if h is None:
     h = 2 * frequency(x)
-  return forecast.snaive(x, h, **{'lambda' : lam})
+  level = map_arg(level)
+  return forecast.snaive(x, h, level=level, **{'lambda' : lam})
 
 
-def rwf(x, h=10, drift=False, lam=NULL):
+def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   '''
   Perform a random walk forecast on the provided data by calling 
   rwf() from R Forecast. The forecast can have drift, which allows 
@@ -132,6 +202,8 @@ def rwf(x, h=10, drift=False, lam=NULL):
     x - an R time series, obtained from forecast_wrapper.ts()
     h - default 10; the forecast horizon.
     drift - default False. If True, a random walk with drift model is fitted.
+    level - A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
     lam - BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
@@ -139,12 +211,14 @@ def rwf(x, h=10, drift=False, lam=NULL):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  return forecast.rwf(x, h, drift, **{'lambda' : lam})
+  level = map_arg(level)
+  return forecast.rwf(x, h, drift, level=level, **{'lambda' : lam})
 
 
 def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL, 
         beta=NULL, gamma=NULL, phi=NULL, additive_only=False, lam=NULL,
-        opt_crit='lik', nmse=3, ic='aicc', allow_multiplicative_trend=False):
+        opt_crit='lik', nmse=3, ic='aicc', allow_multiplicative_trend=False,
+        level=(80, 95)):
   '''
   Automatically select and fit an exponential smoothing model on the 
   provided data using the ets() function from the R Forecast package, 
@@ -185,6 +259,9 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
     allow_multiplicative_trend - Default is False. If True, consider models 
         with a multiplicative trend component. That type of model may grow 
         explosively.
+    level - A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
+
         
   Returns:
     an object that maps to an R object of class 'forecast'
@@ -200,15 +277,16 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
       h = 2 * frequency(x)
     else:
       h = 10
+  level = map_arg(level)
   # NB: default lambda is correct - it will be taken from model
-  return forecast.forecast_ets(ets_model, h)
+  return forecast.forecast_ets(ets_model, h, level=level)
 
 
 def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
                max_order=5, max_d=2, max_D=1, start_p=2, start_q=2, 
                start_P=1, start_Q=1, stationary=False, seasonal=True, 
                ic='aicc', xreg=NULL, newxreg=NULL, test='kpss', 
-               seasonal_test='ocsb', lam=NULL):
+               seasonal_test='ocsb', lam=NULL, level=(80, 95)):
   '''
   Use the auto.arima function from the R Forecast package to automatically 
   select an arima model order, fit the model to the provided data, and 
@@ -249,7 +327,9 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
     lam - BoxCox transformation parameter. The default is R's NULL value.
         If NULL, no transformation is applied. Otherwise, a Box-Cox 
         transformation is applied before forecasting and inverted after.
-
+    level - A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
+      
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
@@ -266,12 +346,13 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
       h = 2 * frequency(x)
     else:
       h = 10
+  level = map_arg(level)
   # NB: default lambda is correct - it will be taken from model
-  return forecast.forecast_Arima(arima_model, h, xreg=newxreg)
+  return forecast.forecast_Arima(arima_model, h, level=level, xreg=newxreg)
 
 
 def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets', 
-         etsmodel='ZZZ', xreg=NULL, newxreg=NULL):
+         etsmodel='ZZZ', xreg=NULL, newxreg=NULL, level=(80, 95)):
   '''
   Constructs a forecast of a seasonal time series by seasonally decomposing 
   it using an STL decomposition, then making a non-seasonal forecast on the 
@@ -301,7 +382,9 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
       Default is NULL, for no regressors.
     newxreg - Only available if 'method' is arima. If regressors are used in 
       fitting, then they must be supplied for the forecast period as newxreg.
-        
+    level - A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
+      
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
@@ -309,27 +392,51 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
     h = 2 * frequency(x)
   kwargs = {'s.window' : s_window,
             'lambda' : lam}
-  return forecast.stlf(x, h, robust=robust, method=method, etsmodel=etsmodel, 
-              xreg=xreg, newxreg=newxreg, **kwargs)
+  level = map_arg(level)
+  return forecast.stlf(x, h, level=level, robust=robust, method=method, 
+                       etsmodel=etsmodel, xreg=xreg, newxreg=newxreg, **kwargs)
 
 
-def stl(x, s_window, robust=False):
+def stl(x, s_window, **kwargs):
   '''
   Perform a decomposition of the time series x into seasonal, trend and 
-  remained components using loess.
+  remained components using loess. Most of the arguments listed below are 
+  in **kwargs, and all of those arguments have sensible defaults. Usually 
+  only the mandatory s_window paramter has to be set.
   
   Args:
     x - an R time series, obtained from forecast_wrapper.ts()
       For this forecast method, x should be seasonal.
-    s.window - either 'periodic' or the span (in lags) of the 
+    s_window - either 'periodic' or the span (in lags) of the 
       loess window for seasonal extraction, which should be odd.
-    robust - If True, use robust fitting in the loess procedure.
+      This has no default.
+    s_degree - Default 0, should be 0 or 1. Degree of local polynomial 
+      for seasonal extraction.
+    t_window - The span (in lags) of the loess window for trend extraction, 
+      which should be odd. Default is a sensible, data-dependent value.
+      See the R docs for the details.
+    t_degree - Default 0, should be 0 or 1. Degree of local polynomial 
+      for trend extraction.
+    l_window - Span in lags of the loess window used to low-pass filter each 
+      seasonal subseries. The default is first odd number greater than or 
+      equal to frequency, which is recommmended.
+    s_jump, t_jump, l_jump - integer parameters (min. 1) to increase speed of 
+      each smoother by skipping data points.
+    l_degree - Default is t.window, must be 0 or 1. Degree of local polynomial 
+      for subseries low-pass filter.
+    robust - Default is False. If True, robust loess fitting used.
+    inner - number of backfitting iterations
+    outer - number of outer robustness iterations
+    na.action - Default is na.fail, which means that the user has to fill or 
+      remove any missing values. If used, it must be an object that maps to 
+      an R function, obtained from rpy2.
       
   Returns:
     an object that maps to an R STL decomposition (class 'stl')
   '''
-  kwargs = {'s.window' : s_window}
-  return stats.stl(x, robust=robust, **kwargs)
+  kwargs['s.window'] = s_window
+  kwargs = translate_kwargs(**kwargs)
+  return stats.stl(x, **kwargs)
   
 
 def decompose(x, type='additive'):

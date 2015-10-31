@@ -17,8 +17,8 @@ def mean_prediction(fc):
 
 def prediction_intervals(fc):
   '''
-  Function creates a Pandas DataFrame with the upper and lower 80% and 
-  95% prediction intervals, as well as the mean prediction.
+  Function creates a Pandas DataFrame with the upper and lower prediction 
+  intervals, as well as the mean prediction.
   
   Args:
     fc - an object with class forecast from R Forecast
@@ -27,15 +27,18 @@ def prediction_intervals(fc):
     a Pandas DataFrame with the mean prediction and prediction intervals
   '''
   mean_fc = list(fc.rx2('mean'))
-  horizon = len(mean_fc)
-  lower_95 = list(fc.rx2('lower')[horizon:])
-  lower_80 = list(fc.rx2('lower')[:horizon])
-  upper_80 = list(fc.rx2('upper')[:horizon])
-  upper_95 = list(fc.rx2('upper')[horizon:])
-  results = (lower_95, lower_80, mean_fc, upper_80, upper_95)
-  cols = ['lower95', 'lower80', 'point_fc', 'upper80', 'upper95']
-  df = pd.DataFrame(dict(zip(cols, results)))
-  return df[cols]
+  df = pd.DataFrame({'point_fc' : mean_fc})
+  colnames = ['point_fc']
+  lower = fc.rx2('lower')
+  upper = fc.rx2('upper')
+  for (k, level) in enumerate(fc.rx2('level')):
+    lower_colname = 'lower%d' % level
+    df[lower_colname] = lower.rx(True, k + 1)
+    colnames.append(lower_colname)
+    upper_colname = 'upper%d' % level
+    df[upper_colname] = upper.rx(True, k + 1)
+    colnames.append(upper_colname)
+  return df[colnames]
   
 
 def decomposition(decomp):

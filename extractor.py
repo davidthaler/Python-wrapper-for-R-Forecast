@@ -33,12 +33,12 @@ def prediction_intervals(fc):
   colnames = ['point_fc']
   lower = fc.rx2('lower')
   upper = fc.rx2('upper')
-  for (k, level) in enumerate(fc.rx2('level')):
+  for (k, level) in enumerate(fc.rx2('level'), 1):
     lower_colname = 'lower%d' % level
-    df[lower_colname] = lower.rx(True, k + 1)
+    df[lower_colname] = lower.rx(True, k)
     colnames.append(lower_colname)
     upper_colname = 'upper%d' % level
-    df[upper_colname] = upper.rx(True, k + 1)
+    df[upper_colname] = upper.rx(True, k)
     colnames.append(upper_colname)
   return df[colnames]
   

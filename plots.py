@@ -14,7 +14,7 @@ def plot_ts(ts, **kwargs):
   Output:
     a time series plot
   '''
-  s = pd.Series(list(ts))
+  s = extractor.ts_as_series(ts)
   s.plot(**kwargs)
   plt.style.use('ggplot')
   plt.show()

@@ -2,7 +2,10 @@ from rpy2 import robjects
 import pandas as pd
 from math import floor
 
-
+freq = lambda x : robjects.r('frequency')(x)[0]
+time = lambda x : list(robjects.r('time')(x))
+cycle = lambda x : list(robjects.r('cycle')(x))
+  
 def mean_prediction(fc):
   '''
   Function to extract the mean prediction from an R forecast.
@@ -92,9 +95,6 @@ def get_index(ts):
   Returns:
     either a list or a list of lists
   '''
-  freq = lambda x : robjects.r('frequency')(x)[0]
-  time = lambda x : list(robjects.r('time')(x))
-  cycle = lambda x : list(robjects.r('cycle')(x))
   times = [int(floor(x)) for x in time(ts)]
   cycles = [int(floor(x)) for x in cycle(ts)]
   if freq(ts) > 1:

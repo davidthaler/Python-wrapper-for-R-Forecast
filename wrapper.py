@@ -15,7 +15,7 @@ def frequency(x):
   the number of data points in one period, e.g. 12 for monthly data. 
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from forecast_wrapper.ts()
 
   Returns:
     The number of data points per period in x, as a single float
@@ -29,21 +29,21 @@ def ts(data, start=1, frequency=1, deltat=1, **kwargs):
   deltat should be given.
   
   Args:
-    data - Python sequence representing values of a regular time series.
-    start - default 1; a number or 2-tuple to use as start index of sequence.
+    data: Python sequence representing values of a regular time series.
+    start: default 1; a number or 2-tuple to use as start index of sequence.
       If 2-tuple, it is (period, step), e.g. March 2010 is (2010, 3).
-    end - By default this is not specified, which is usually right. 
+    end: By default this is not specified, which is usually right. 
       A number or 2-tuple (like start) to specify the end of the sequence.
       If both of start and end are specified, truncation or recycling may 
       occur, which is usually not sensible.
-    frequency - default 1; number of points in each time period
+    frequency: default 1; number of points in each time period
       e.g. 12 for monthly data with an annual period
-    deltat - default 1; fraction of sampling period per observation 
+    deltat: default 1; fraction of sampling period per observation 
       e.g. 1/12 for monthly data with an annual period. Only one of deltat 
       and frequency should be defined.
 
   Returns:
-    an object that maps to an R time series (class 'ts')
+    an object containing the data that maps to an R time series (class 'ts')
   '''
   rdata = robjects.FloatVector(data)
   start = map_arg(start)
@@ -61,7 +61,7 @@ def map_arg(x):
   vectors, if needed.
   
   Args:
-    x - a number or list/tuple
+    x: a number or list/tuple
     
   Returns:
     either an R vector containing the values in x, or the number x
@@ -83,7 +83,7 @@ def translate_kwargs(**kwargs):
   argument that has an underscore, you must put it into the 'reserved' dict.
   
   Args:
-    **kwargs - the dict of all keyword arguments to a python function
+    **kwargs: the dict of all keyword arguments to a python function
     
   Returns:
     A dict that can be passed as **kwargs to R functions
@@ -108,11 +108,11 @@ def meanf(x, h=10, level=(80,95), lam=NULL):
   from R Forecast.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
-    h - default 10; the forecast horizon.
-    level - A number or list/tuple of prediction interval confidence values.
+    x: an R time series, obtained from forecast_wrapper.ts()
+    h: default 10; the forecast horizon.
+    level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
-    lam - BoxCox transformation parameter. The default is R's NULL value.
+    lam: BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
 
@@ -132,9 +132,9 @@ def thetaf(x, h=10, level=(80, 95)):
   theta forecast did well in the M3 competition.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
-    h - default 10; the forecast horizon.
-    level - A number or list/tuple of prediction interval confidence values.
+    x: an R time series, obtained from forecast_wrapper.ts()
+    h: default 10; the forecast horizon.
+    level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
       
   Returns:
@@ -151,11 +151,11 @@ def naive(x, h=10, level=(80, 95), lam=NULL):
   forecast. The point forecast is a constant at the last observed value.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
-    h - default 10; the forecast horizon.
-    level - A number or list/tuple of prediction interval confidence values.
+    x: an R time series, obtained from forecast_wrapper.ts()
+    h: default 10; the forecast horizon.
+    level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
-    lam - BoxCox transformation parameter. The default is R's NULL value.
+    lam: BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
 
@@ -174,12 +174,12 @@ def snaive(x, h=None, level=(80, 95), lam=NULL):
   series one full period in the past.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from forecast_wrapper.ts()
       For this forecast method, x should be seasonal.
-    h - Forecast horizon; default is 2 full periods of a periodic series
-    level - A number or list/tuple of prediction interval confidence values.
+    h: Forecast horizon; default is 2 full periods of a periodic series
+    level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
-    lam - BoxCox transformation parameter. The default is R's NULL value.
+    lam: BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
 
@@ -199,12 +199,12 @@ def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   a trend in the mean prediction, but by default, it does not.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
-    h - default 10; the forecast horizon.
-    drift - default False. If True, a random walk with drift model is fitted.
-    level - A number or list/tuple of prediction interval confidence values.
+    x: an R time series, obtained from forecast_wrapper.ts()
+    h: default 10; the forecast horizon.
+    drift: default False. If True, a random walk with drift model is fitted.
+    level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
-    lam - BoxCox transformation parameter. The default is R's NULL value.
+    lam: BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
 
@@ -225,41 +225,41 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
   and use it to produce a forecast over the given horizon.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
+    x:  an R time series, obtained from forecast_wrapper.ts()
         For this forecast method, x should be periodic.
-    h - Forecast horizon; default is 2 full periods of a periodic series,
+    h:  Forecast horizon; default is 2 full periods of a periodic series,
         or 10 steps for non-seasonal series.
-    model_spec - Default is 'ZZZ'. A 3-letter string denoting the model type.
+    model_spec : Default is 'ZZZ'. A 3-letter string denoting the model type.
         Letters denote error, trend, and seasonal parts: A=additive, 
         N=none, M=multiplicative, Z=automatically selected. Legal 
         values for first part are (A, M, Z), all values are legal 
         for other parts.
-    damped - If True, use a damped trend model. 
+    damped : If True, use a damped trend model. 
         Default is NULL, which tries damped/undamped models and 
         selects best model according to the selected ic.
-    alpha - Smoothing parameter for error term. 
+    alpha : Smoothing parameter for error term. 
         Default is NULL, which fits this value.
-    beta - Smoothing paramter for trend component. 
+    beta : Smoothing paramter for trend component. 
         Default is NULL, which fits this value.
-    gamma - Smoothing parameter for seasonal component. 
+    gamma : Smoothing parameter for seasonal component. 
         Default is NULL, which fits this value.
-    phi - Damping parameter. Default is NULL, which fits this value.
-    additive_only - Default False. If True, only try additive models.
-    lam - BoxCox transformation parameter. The default is R's NULL value.
+    phi : Damping parameter. Default is NULL, which fits this value.
+    additive_only : Default False. If True, only try additive models.
+    lam : BoxCox transformation parameter. The default is R's NULL value.
         If NULL, no transformation is applied. Otherwise, a Box-Cox 
         transformation is applied before forecasting and inverted after.
-    opt_crit - Optimization criterion. Default is 'lik' for log-likelihood. 
+    opt_crit : Optimization criterion. Default is 'lik' for log-likelihood. 
         Other values are 'mse' (mean squared error), 'amse' (MSE averaged 
         over first nmse forecast horizons), 'sigma' (standard deviation of 
         residuals), and 'mae' (mean absolute error).
-    nmse - number of steps in average MSE, if 'amse' is opt_crit.
+    nmse : number of steps in average MSE, if 'amse' is opt_crit.
         Restricted to 1 <= nmse <= 10.
-    ic - information crierion. Default is 'aicc' for bias-corrected AIC.
+    ic : information crierion. Default is 'aicc' for bias-corrected AIC.
         Other values are 'aic' for regular AIC, or 'bic' for BIC.
-    allow_multiplicative_trend - Default is False. If True, consider models 
+    allow_multiplicative_trend : Default is False. If True, consider models 
         with a multiplicative trend component. That type of model may grow 
         explosively.
-    level - A number or list/tuple of prediction interval confidence values.
+    level : A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
 
         
@@ -293,41 +293,41 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
   generate a forecast.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
+    x : an R time series, obtained from forecast_wrapper.ts()
         For this forecast method, x should be periodic.
-    h - Forecast horizon; default is 2 full periods of a periodic series,
+    h : Forecast horizon; default is 2 full periods of a periodic series,
         or 10 steps for non-seasonal series.
-    d - order of first differencing. Default is NA, which selects this 
+    d : order of first differencing. Default is NA, which selects this 
         value based on the value of 'test' (KPSS test by default).
-    D - order of seasonal differencing. Default is NA, which selects this 
+    D : order of seasonal differencing. Default is NA, which selects this 
         value based on 'seasonal_test' (OCSB test by default).
-    max_p - maximum value for non-seasonal AR order
-    max_q - maximum value for non-seasonal MA order
-    max_P - maximum value for seasonal AR order
-    max_Q - maximum value for seasonal MA order
-    max_order - maximum value of p + q + P + Q
-    start_p - starting value for non-seasonal AR order
-    start_q - starting value for non-seasonal MA order
-    start_P - starting value for seasonal AR order
-    start_Q - starting value for seasonal MA order
-    stationary - Default is False. If True, only consider stationary models.
-    seasonal - Default is True. If False, only consider non-seasonal models.
-    ic - information crierion. Default is 'aicc' for bias-corrected AIC.
+    max_p : maximum value for non-seasonal AR order
+    max_q : maximum value for non-seasonal MA order
+    max_P : maximum value for seasonal AR order
+    max_Q : maximum value for seasonal MA order
+    max_order : maximum value of p + q + P + Q
+    start_p : starting value for non-seasonal AR order
+    start_q : starting value for non-seasonal MA order
+    start_P : starting value for seasonal AR order
+    start_Q : starting value for seasonal MA order
+    stationary : Default is False. If True, only consider stationary models.
+    seasonal : Default is True. If False, only consider non-seasonal models.
+    ic : information crierion. Default is 'aicc' for bias-corrected AIC.
         Other values are 'aic' for regular AIC, or 'bic' for BIC.
-    xreg - An optional vector or matrix of regressors, which must have one 
+    xreg : An optional vector or matrix of regressors, which must have one 
         row/element for each point in x. Default is NULL, for no regressors.
-    newxreg - If regressors were used to fit the model, then they must be 
+    newxreg : If regressors were used to fit the model, then they must be 
         supplied for the forecast period as newxreg.
-    test - Test to use to determine number of first differences. Default 
+    test : Test to use to determine number of first differences. Default 
         is 'kpss', for the KPSS test. Other values are 'adf' for augmented 
         Dickey-Fuller, or 'pp' for Phillips-Perron.
-    seasonal_test - Test to use to determine number of seasonal differences.
+    seasonal_test : Test to use to determine number of seasonal differences.
         Default is 'ocsb' for the Osborn-Chui-Smith-Birchenhall  test. 
         The alternative is 'ch' for the Canova-Hansen test. 
-    lam - BoxCox transformation parameter. The default is R's NULL value.
+    lam : BoxCox transformation parameter. The default is R's NULL value.
         If NULL, no transformation is applied. Otherwise, a Box-Cox 
         transformation is applied before forecasting and inverted after.
-    level - A number or list/tuple of prediction interval confidence values.
+    level : A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
       
   Returns:
@@ -360,29 +360,29 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
   component on to the forecast.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
+    x : an R time series, obtained from forecast_wrapper.ts()
       For this forecast method, x should be seasonal.
-    h - Forecast horizon; default is 2 full periods of a periodic series
-    s.window - either 'periodic' or the span (in lags) of the 
+    h : Forecast horizon; default is 2 full periods of a periodic series
+    s.window : either 'periodic' or the span (in lags) of the 
       loess window for seasonal extraction, which should be odd.
-    robust - If True, use robust fitting in the loess procedure.
-    lam - BoxCox transformation parameter. The default is R's NULL value.
+    robust : If True, use robust fitting in the loess procedure.
+    lam : BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
-    method - One of 'ets' or 'arima'; default is 'ets'. Specifies the type 
+    method : One of 'ets' or 'arima'; default is 'ets'. Specifies the type 
       of model to use for forecasting the non-seasonal part.
-    etsmodel - Default is 'ZZZ'. This is only used if 'method' is 'ets'.
+    etsmodel : Default is 'ZZZ'. This is only used if 'method' is 'ets'.
       A 3-letter string denoting the ets model type.
       Letters denote error, trend, and seasonal parts: A=additive, 
       N=none, M=multiplicative, Z=automatically selected. Legal 
       values for first part are (A, M, Z), all values are legal 
       for other parts.
-    xreg - Only available if 'method' is arima. An optional vector or matrix 
+    xreg : Only available if 'method' is arima. An optional vector or matrix 
       of regressors, which must have one row/element for each point in x. 
       Default is NULL, for no regressors.
-    newxreg - Only available if 'method' is arima. If regressors are used in 
+    newxreg : Only available if 'method' is arima. If regressors are used in 
       fitting, then they must be supplied for the forecast period as newxreg.
-    level - A number or list/tuple of prediction interval confidence values.
+    level : A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
       
   Returns:
@@ -400,34 +400,34 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
 def stl(x, s_window, **kwargs):
   '''
   Perform a decomposition of the time series x into seasonal, trend and 
-  remained components using loess. Most of the arguments listed below are 
+  remainder components using loess. Most of the arguments listed below are 
   in **kwargs, and all of those arguments have sensible defaults. Usually 
   only the mandatory s_window paramter has to be set.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
+    x : an R time series, obtained from forecast_wrapper.ts()
       For this forecast method, x should be seasonal.
-    s_window - either 'periodic' or the span (in lags) of the 
+    s_window : either 'periodic' or the span (in lags) of the 
       loess window for seasonal extraction, which should be odd.
       This has no default.
-    s_degree - Default 0, should be 0 or 1. Degree of local polynomial 
+    s_degree : Default 0, should be 0 or 1. Degree of local polynomial 
       for seasonal extraction.
-    t_window - The span (in lags) of the loess window for trend extraction, 
+    t_window : The span (in lags) of the loess window for trend extraction, 
       which should be odd. Default is a sensible, data-dependent value.
       See the R docs for the details.
-    t_degree - Default 0, should be 0 or 1. Degree of local polynomial 
+    t_degree : Default 0, should be 0 or 1. Degree of local polynomial 
       for trend extraction.
-    l_window - Span in lags of the loess window used to low-pass filter each 
+    l_window : Span in lags of the loess window used to low-pass filter each 
       seasonal subseries. The default is first odd number greater than or 
       equal to frequency, which is recommmended.
-    s_jump, t_jump, l_jump - integer parameters (min. 1) to increase speed of 
+    s_jump, t_jump, l_jump : integer parameters (min. 1) to increase speed of 
       each smoother by skipping data points.
-    l_degree - Default is t.window, must be 0 or 1. Degree of local polynomial 
+    l_degree : Default is t.window, must be 0 or 1. Degree of local polynomial 
       for subseries low-pass filter.
-    robust - Default is False. If True, robust loess fitting used.
-    inner - number of backfitting iterations
-    outer - number of outer robustness iterations
-    na.action - Default is na.fail, which means that the user has to fill or 
+    robust : Default is False. If True, robust loess fitting used.
+    inner : number of backfitting iterations
+    outer : number of outer robustness iterations
+    na.action : Default is na.fail, which means that the user has to fill or 
       remove any missing values. If used, it must be an object that maps to 
       an R function, obtained from rpy2.
       
@@ -445,9 +445,9 @@ def decompose(x, type='additive'):
   season, trend and remainder components.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from forecast_wrapper.ts()
       The series should be seasonal.
-    type - Type of seasonal decomposition to perform.
+    type: Type of seasonal decomposition to perform.
       Default is 'additive', other option is 'multiplicative'.
       
   Returns:
@@ -463,7 +463,7 @@ def seasadj(decomp):
   was seasonally decomposed to get decomp.
   
   Args:
-    decomp - a seasonal decomposition from stl or decompose
+    decomp: a seasonal decomposition from stl or decompose
     
   Returns:
     an object that maps an R time series of the seasonally adjusted
@@ -478,8 +478,8 @@ def sindexf(decomp, h):
   forward by h time steps into the future.
   
   Args:
-    decomp - a seasonal decomposition from stl or decompose
-    h - a forecast horizon
+    decomp: a seasonal decomposition from stl or decompose
+    h: a forecast horizon
     
   Returns:
     an object that maps to am R time series containing the seasonal component 
@@ -497,8 +497,8 @@ def BoxCox(x, lam):
   For x = 0, it is log(x).
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
-    lam - BoxCox transformation parameter. The default is R's NULL value.
+    x: an R time series, obtained from forecast_wrapper.ts()
+    lam: BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
       
@@ -513,9 +513,9 @@ def InvBoxCox(x, lam):
   Invert a BoxCox transformation.
   
   Args:
-    x - an R time series, with values that are on the scale of a BoxCox
+    x: an R time series, with values that are on the scale of a BoxCox
       transformation with parameter lambda=lam
-    lam - BoxCox transformation parameter. The default is R's NULL value.
+    lam: BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
       
@@ -530,11 +530,11 @@ def BoxCox_lambda(x, method='guerrero', lower=-1, upper=2):
   Function to find a good value of the BoxCox transformation parameter, lambda.
   
   Args:
-    x - an R time series, obtained from forecast_wrapper.ts()
-    method - Method of calculating lambda. 
+    x: an R time series, obtained from forecast_wrapper.ts()
+    method: Method of calculating lambda. 
       Default is 'guerrero', other option is 'lik' for log-likelihood.
-    upper - Upper limit of possible lambda values, default 2.
-    lower - Lower limit of possible lambda values, default -1.
+    upper: Upper limit of possible lambda values, default 2.
+    lower: Lower limit of possible lambda values, default -1.
     
   Returns:
     value of lambda for the series x, as calculated by the selected method

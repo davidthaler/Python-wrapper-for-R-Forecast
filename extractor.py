@@ -11,7 +11,7 @@ def mean_prediction(fc):
   Function to extract the mean prediction from an R forecast.
 
   Args:
-    fc - an object with class forecast from R Forecast
+    fc: an object with class forecast from R Forecast
 
   Returns:
     the mean prediction in a list
@@ -25,7 +25,7 @@ def prediction_intervals(fc):
   intervals, as well as the mean prediction.
   
   Args:
-    fc - an object with class forecast from R Forecast
+    fc: an object with class forecast from R Forecast
     
   Returns:
     a Pandas DataFrame with the mean prediction and prediction intervals
@@ -53,7 +53,7 @@ def decomposition(decomp):
   separate columns.
   
   Args:
-    decomp - An object that maps to a seasonal decomposition (class 'stl' 
+    decomp: An object that maps to a seasonal decomposition (class 'stl' 
       or 'decomposed.ts' in R), otained from stl or decompose in wrapper.
       
   Returns:
@@ -90,7 +90,7 @@ def get_index(ts):
   given time series.
   
   Args:
-    ts - an object that maps to an R time series (class ts)
+    ts: an object that maps to an R time series (class ts)
     
   Returns:
     either a list or a list of lists
@@ -109,7 +109,7 @@ def ts_as_series(ts):
   (seasonal/non-seasonal) index.
   
   Args:
-    ts - an object that maps to an R time series (class ts)
+    ts: an object that maps to an R time series (class ts)
     
   Returns:
     a Pandas Series with the same data and index as ts

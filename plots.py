@@ -7,8 +7,8 @@ def plot_ts(ts, **kwargs):
   Plots an R time series using matplotlib/pyplot/pandas.
   
   Args:
-    ts - an object that maps to an R time series
-    kwargs - keyword arguments passed through a pandas Series
+    ts: an object that maps to an R time series
+    kwargs: keyword arguments passed through a pandas Series
       and on to pyplot.plot().
     
   Output:
@@ -25,8 +25,8 @@ def plot_decomp(decomp, **kwargs):
   Plots a seasonal decomposition using matplotlib/pyplot/pandas.
   
   Args:
-    decomp - an object that maps to a seasonal decomposition in R.
-    kwargs - keyword arguments passed through a pandas DataFrame
+    decomp: an object that maps to a seasonal decomposition in R.
+    kwargs: keyword arguments passed through a pandas DataFrame
       and on to pyplot.plot().
       
   Output:
@@ -44,7 +44,7 @@ def plot_forecast(fc):
   Plots a forecast and its prediction intervals.
   
   Args:
-    fc - an object that maps to an R forecast
+    fc: an object that maps to an R forecast
 
   Output:
     a plot of the series, the mean forecast, and the prediciton intervals

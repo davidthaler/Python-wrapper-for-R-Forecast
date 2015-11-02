@@ -2,10 +2,7 @@ from rpy2 import robjects
 import pandas as pd
 from math import floor
 
-freq = lambda x : robjects.r('frequency')(x)[0]
-time = lambda x : list(robjects.r('time')(x))
-cycle = lambda x : list(robjects.r('cycle')(x))
-  
+
 def mean_prediction(fc):
   '''
   Function to extract the mean prediction from an R forecast.
@@ -31,7 +28,7 @@ def prediction_intervals(fc):
     a Pandas DataFrame with the mean prediction and prediction intervals
   '''
   mean_fc = list(fc.rx2('mean'))
-  idx = get_index(fc.rx2('mean'))
+  idx = _get_index(fc.rx2('mean'))
   df = pd.DataFrame({'point_fc' : mean_fc}, index=idx)
   colnames = ['point_fc']
   lower = fc.rx2('lower')
@@ -66,7 +63,7 @@ def decomposition(decomp):
     trend = list(data.rx(True, 2))
     remainder = list(data.rx(True, 3))
     cols = ['seasonal', 'trend', 'remainder']
-    idx = get_index(data)
+    idx = _get_index(data)
     df = pd.DataFrame(dict(zip(cols, (seasonal, trend, remainder))), index=idx)
     df['data'] = df.sum(axis=1)
     return df[['data', 'seasonal', 'trend', 'remainder']]
@@ -76,14 +73,14 @@ def decomposition(decomp):
     trend = list(decomp.rx2('trend'))
     remainder = list(decomp.rx2('random'))
     cols = ['data', 'seasonal', 'trend', 'remainder']
-    idx = get_index(decomp.rx2('x'))
+    idx = _get_index(decomp.rx2('x'))
     df = pd.DataFrame(dict(zip(cols, (x, seasonal, trend, remainder))), index=idx)
     return df[cols]
   else:
     raise ValueError('Argument must map to an R seasonal decomposition.')
 
 
-def get_index(ts):
+def _get_index(ts):
   '''
   Utility function for making the correct argument to constructors for 
   Pandas Series or DataFrame objects so as to get the index to match a 
@@ -95,9 +92,9 @@ def get_index(ts):
   Returns:
     either a list or a list of lists
   '''
-  times = [int(floor(x)) for x in time(ts)]
-  cycles = [int(floor(x)) for x in cycle(ts)]
-  if freq(ts) > 1:
+  times = [int(floor(x)) for x in list(robjects.r('time')(ts))]
+  cycles = [int(x) for x in list(robjects.r('cycle')(ts))]
+  if robjects.r('frequency')(ts)[0] > 1:
     return [times, cycles]
   else:
     return times 
@@ -114,7 +111,7 @@ def ts_as_series(ts):
   Returns:
     a Pandas Series with the same data and index as ts
   '''
-  idx = get_index(ts)
+  idx = _get_index(ts)
   return pd.Series(ts, index=idx)
 
    

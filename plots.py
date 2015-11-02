@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import extractor
+from rpy2 import robjects
+import extractors
+
 
 def plot_ts(ts, **kwargs):
   '''
@@ -14,7 +16,7 @@ def plot_ts(ts, **kwargs):
   Output:
     a time series plot
   '''
-  s = extractor.ts_as_series(ts)
+  s = extractors.ts_as_series(ts)
   s.plot(**kwargs)
   plt.style.use('ggplot')
   plt.show()
@@ -33,7 +35,7 @@ def plot_decomp(decomp, **kwargs):
     a plot of the seasonal, trend and remainder components from the 
     decomposition plus the original time series data
   '''
-  dcdf = extractor.decomposition(decomp)
+  dcdf = extractors.decomposition(decomp)
   dcdf.plot(subplots=True, **kwargs)
   plt.style.use('ggplot')
   plt.show()
@@ -51,10 +53,10 @@ def plot_forecast(fc):
   '''
   plt.style.use('ggplot')
   data = fc.rx2('x')
-  data_idx = extractor.time(data)
+  data_idx = list(robjects.r('time')(data))
   plt.plot(data_idx, list(data), color='black')
   mean_fc = fc.rx2('mean')
-  fc_idx = extractor.time(mean_fc)
+  fc_idx = list(robjects.r('time')(mean_fc))
   plt.plot(fc_idx, list(mean_fc), color='blue')
   lower = fc.rx2('lower')
   upper = fc.rx2('upper')

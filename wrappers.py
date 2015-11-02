@@ -46,14 +46,14 @@ def ts(data, start=1, frequency=1, deltat=1, **kwargs):
     an object containing the data that maps to an R time series (class 'ts')
   '''
   rdata = robjects.FloatVector(data)
-  start = map_arg(start)
-  kwargs = translate_kwargs(**kwargs)
+  start = _map_arg(start)
+  kwargs = _translate_kwargs(**kwargs)
   time_series = stats.ts(rdata, start=start, frequency=frequency, 
                          deltat=deltat, **kwargs)
   return time_series
   
   
-def map_arg(x):
+def _map_arg(x):
   '''
   Many arguments in R may be either numbers or vectors. Rpy2 translates 
   arguments that are numbers automatically, but does not translate tuples 
@@ -72,7 +72,7 @@ def map_arg(x):
     return x
   
   
-def translate_kwargs(**kwargs):
+def _translate_kwargs(**kwargs):
   '''
   Translates between python and R keyword arguments. 
   First, tuple arguments are rewritten to R vectors. Next, substitution 
@@ -119,7 +119,7 @@ def meanf(x, h=10, level=(80,95), lam=NULL):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  level = map_arg(level)
+  level = _map_arg(level)
   return forecast.meanf(x, h, level=level, **{'lambda' : lam})
   
   
@@ -140,7 +140,7 @@ def thetaf(x, h=10, level=(80, 95)):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  level = map_arg(level)
+  level = _map_arg(level)
   return forecast.thetaf(x, h, level=level)
 
 
@@ -162,7 +162,7 @@ def naive(x, h=10, level=(80, 95), lam=NULL):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  level = map_arg(level)
+  level = _map_arg(level)
   return forecast.naive(x, h, level=level, **{'lambda' : lam})
 
 
@@ -188,7 +188,7 @@ def snaive(x, h=None, level=(80, 95), lam=NULL):
   '''
   if h is None:
     h = 2 * frequency(x)
-  level = map_arg(level)
+  level = _map_arg(level)
   return forecast.snaive(x, h, level=level, **{'lambda' : lam})
 
 
@@ -211,7 +211,7 @@ def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  level = map_arg(level)
+  level = _map_arg(level)
   return forecast.rwf(x, h, drift, level=level, **{'lambda' : lam})
 
 
@@ -277,7 +277,7 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
       h = 2 * frequency(x)
     else:
       h = 10
-  level = map_arg(level)
+  level = _map_arg(level)
   # NB: default lambda is correct - it will be taken from model
   return forecast.forecast_ets(ets_model, h, level=level)
 
@@ -346,7 +346,7 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
       h = 2 * frequency(x)
     else:
       h = 10
-  level = map_arg(level)
+  level = _map_arg(level)
   # NB: default lambda is correct - it will be taken from model
   return forecast.forecast_Arima(arima_model, h, level=level, xreg=newxreg)
 
@@ -392,7 +392,7 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
     h = 2 * frequency(x)
   kwargs = {'s.window' : s_window,
             'lambda' : lam}
-  level = map_arg(level)
+  level = _map_arg(level)
   return forecast.stlf(x, h, level=level, robust=robust, method=method, 
                        etsmodel=etsmodel, xreg=xreg, newxreg=newxreg, **kwargs)
 
@@ -435,7 +435,7 @@ def stl(x, s_window, **kwargs):
     an object that maps to an R STL decomposition (class 'stl')
   '''
   kwargs['s.window'] = s_window
-  kwargs = translate_kwargs(**kwargs)
+  kwargs = _translate_kwargs(**kwargs)
   return stats.stl(x, **kwargs)
   
 

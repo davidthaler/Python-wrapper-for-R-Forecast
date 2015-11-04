@@ -1,3 +1,9 @@
+'''
+The extractors module contains functions for converting forecasts or 
+seasonal decompositions (R objects) into python objects, primarily 
+Pandas DataFrames.
+'''
+
 from rpy2 import robjects
 import pandas as pd
 from math import floor

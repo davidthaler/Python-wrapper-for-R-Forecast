@@ -6,6 +6,7 @@ Pandas DataFrames.
 
 from rpy2 import robjects
 import pandas as pd
+import numpy as np
 from math import floor
 
 
@@ -33,6 +34,8 @@ def prediction_intervals(fc):
   Returns:
     a Pandas DataFrame with the mean prediction and prediction intervals
   '''
+  if robjects.r('class')(fc)[0] != 'forecast':
+    raise ValueError('Argument must map to an R forecast.')
   mean_fc = list(fc.rx2('mean'))
   idx = _get_index(fc.rx2('mean'))
   df = pd.DataFrame({'point_fc' : mean_fc}, index=idx)
@@ -121,7 +124,24 @@ def ts_as_series(ts):
   return pd.Series(ts, index=idx)
 
    
-
+def accuracy(acc):
+  '''
+  Convert the R matrix of forecast accuracy measures returned from 
+  wrappers.accuracy into a Pandas DataFrame.
+  
+  Args:
+    acc: R matrix returned from wrappers.accuracy
+    
+  Returns:
+    Pandas DataFrame with accuracy measures
+  '''
+  index = pd.Index(list(acc.colnames))
+  if acc.dim[0] == 2:
+    data = {'Train' : list(acc)[::2]}
+    data['Test'] = list(acc)[1::2]
+  else:
+    data = {'Train' : list(acc)}
+  return pd.DataFrame(data=data, index=index)
 
 
 

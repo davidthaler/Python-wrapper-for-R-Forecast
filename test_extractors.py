@@ -89,6 +89,7 @@ class ExtractorsTestCase(unittest.TestCase):
     self.assertTrue(dcdf.remainder.isnull()[(1999, 2)])
     self.assertTrue(dcdf.remainder.isnull()[(2010, 3)])
     self.assertTrue(dcdf.remainder.isnull()[(2010, 4)])
+    self.assertRaises(ValueError, extractors.decomposition, self.fc_oil)
 
 
   def test_prediction_intervals(self):
@@ -107,3 +108,26 @@ class ExtractorsTestCase(unittest.TestCase):
     self.assertAlmostEqual(pred.lower95[2020], 112.9187, places=3)
     self.assertAlmostEqual(pred.upper95[2011], 627.7818, places=3)
     self.assertAlmostEqual(pred.upper95[2020], 627.7818, places=3)
+    self.assertRaises(ValueError, extractors.prediction_intervals, self.oil)
+
+
+  def test_accuracy(self):
+    acc1 = wrappers.accuracy(self.fc_oil)
+    acdf1 = extractors.accuracy(acc1)
+    acdf1.shape == (7, 1)
+    list(acdf1.columns) == ['Train']
+    acc2 = wrappers.accuracy(self.fc_oil, 350)
+    acdf2 = extractors.accuracy(acc2)
+    acdf2.shape == (7, 2)
+    set(acdf2.columns) == {'Train', 'Test'}
+    self.assertTrue(acdf1.Train.round(5).equals(acdf2.Train.round(5)))
+    self.assertAlmostEqual(acdf2.Test.ix['ME'], -20.3502, places=3)
+    self.assertAlmostEqual(acdf2.Test.ix['MAE'], 20.3502, places=3)
+    self.assertAlmostEqual(acdf2.Test.ix['RMSE'], 20.3502, places=3)
+
+
+
+
+
+
+

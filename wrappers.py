@@ -502,9 +502,7 @@ def BoxCox(x, lam):
   
   Args:
     x: an R time series, obtained from forecast_wrapper.ts()
-    lam: BoxCox transformation parameter. The default is R's NULL value.
-      If NULL, no transformation is applied. Otherwise, a Box-Cox 
-      transformation is applied before forecasting and inverted after.
+    lam: BoxCox transformation parameter. 
       
   Returns:
     an object that maps to an R time series containing x, tranformed
@@ -519,9 +517,7 @@ def InvBoxCox(x, lam):
   Args:
     x: an R time series, with values that are on the scale of a BoxCox
       transformation with parameter lambda=lam
-    lam: BoxCox transformation parameter. The default is R's NULL value.
-      If NULL, no transformation is applied. Otherwise, a Box-Cox 
-      transformation is applied before forecasting and inverted after.
+    lam: BoxCox transformation parameter. 
       
   Returns:
     an R timeseries with values of x transformed back to the original scale
@@ -544,6 +540,47 @@ def BoxCox_lambda(x, method='guerrero', lower=-1, upper=2):
     value of lambda for the series x, as calculated by the selected method
   '''
   return forecast.BoxCox_lambda(x, method=method, lower=lower, upper=upper)
+
+
+def na_interp(x, lam=NULL):
+  '''
+  Funtction for interpolating missing values in R time series. This function 
+  uses linear interpolation for non-seasonal data. For seasonal data, it 
+  uses an STL decomposition, imputing the seasonal value.
+  
+  Args:
+    x: an R time series, with values that are on the scale of a BoxCox
+      transformation with parameter lambda=lam
+    lam: BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.  
+      
+  Returns:
+    the time series x, with any NA values filled with imputed values
+  '''
+  return forecast.na_interp(x, **{'lambda' : lam})
+
+
+def accuracy(fc, x=None, **kwargs):
+  '''
+  Args:
+    fc: an R forecast object, or an R vector containing forecasts
+    x: optional R vector of true values for the forecast (test data)
+    d: Number of first differences taken in forecast, default is none.
+    D: Number of seasonal differences taken in forecast, default is none.
+
+  Returns:
+    An R list of forecast accuracy measures. 
+    Use extractors.accuracy to get a Pandas DataFrame.  
+  '''
+  if x is not None:
+    kwargs['x'] = x
+  return forecast.accuracy(fc, **kwargs)
+
+
+
+
+
 
 
 

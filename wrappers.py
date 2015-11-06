@@ -247,7 +247,7 @@ def forecast_ts(x, h=None, **kwargs):
     level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
     robust: Default False. If True, missing values are filled before 
-      forecasting and outliers are identified and replaced with tsoutliers().
+      forecasting and outliers are identified and replaced with tsclean().
     lam : BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.
@@ -465,7 +465,7 @@ def stl(x, s_window, **kwargs):
     robust : Default is False. If True, robust loess fitting used.
     inner : number of backfitting iterations
     outer : number of outer robustness iterations
-    na.action : Default is na.fail, which means that the user has to fill or 
+    na_action : Default is na.fail, which means that the user has to fill or 
       remove any missing values. If used, it must be an object that maps to 
       an R function, obtained from rpy2.
       
@@ -597,6 +597,8 @@ def na_interp(x, lam=NULL):
 
 def accuracy(fc, x=None, **kwargs):
   '''
+  # TODO: narrative doc
+  
   Args:
     fc: an R forecast object, or an R vector containing forecasts
     x: optional R vector of true values for the forecast (test data)
@@ -612,7 +614,22 @@ def accuracy(fc, x=None, **kwargs):
   return forecast.accuracy(fc, **kwargs)
 
 
+def tsclean(x, **kwargs):
+  '''
+  Identify and replace outliers. Uses loess for non-seasonal series and 
+  an STL decomposition for seasonal series. Optionally fills missing values.
 
+  Args:
+    x: an R time series
+    replace_missing: Default False. 
+      If True, use na_interp to fill missing values in x.
+    lam: optional BoxCox transformation parameter.
+    
+  Returns:
+    x, with outliers replaced and optionally, missing values filled
+  '''
+  kwargs = _translate_kwargs(**kwargs)
+  return forecast.tsclean(x, **kwargs)
 
 
 

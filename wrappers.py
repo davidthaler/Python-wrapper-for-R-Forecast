@@ -54,7 +54,26 @@ def ts(data, **kwargs):
   time_series = stats.ts(rdata, **kwargs)
   return time_series
   
+
+def _get_horizon(x, h=None):
+  '''
+  Utility function for getting forecast horizons.
   
+  Args:
+    x: the R time series to be forecast
+    h: None, or a forecast horizon
+    
+  Returns:
+    the provided h value, or the correct default if h is None
+  '''
+  if h is not None:
+    return h
+  if frequency(x) > 1:
+    return 2 * frequency(x)
+  else:
+    return 10
+
+
 def _map_arg(x):
   '''
   Many arguments in R may be either numbers or vectors. Rpy2 translates 
@@ -188,8 +207,7 @@ def snaive(x, h=None, level=(80, 95), lam=NULL):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  if h is None:
-    h = 2 * frequency(x)
+  h = _get_horizon(x, h)
   level = _map_arg(level)
   return forecast.snaive(x, h, level=level, **{'lambda' : lam})
 
@@ -217,6 +235,36 @@ def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   return forecast.rwf(x, h, drift, level=level, **{'lambda' : lam})
 
 
+def forecast_ts(x, h=None, **kwargs):
+  '''
+  Generate a forecast for the time series x, using ets if x is non-seasonal 
+  or has frequency less than 13, and stlf if x is periodic with frequency 
+  above 13.
+  
+  Args:
+    x: an R time series
+    h: the forecast horizon
+    level: A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
+    robust: Default False. If True, missing values are filled before 
+      forecasting and outliers are identified and replaced with tsoutliers().
+    lam : BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
+    find_frequency: Default False. If True, function will try to determine 
+      the series frequency from the data.
+    allow_multiplicative_trend: Default is False. If True, consider models 
+      with a multiplicative trend component. That type of model may grow 
+      explosively.
+        
+  Returns:
+    an object that maps to an R object of class 'forecast'
+  '''
+  h = _get_horizon(x, h)
+  kwargs = _translate_kwargs(**kwargs)
+  return forecast.forecast(x, h=h, **kwargs)
+
+
 def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL, 
         beta=NULL, gamma=NULL, phi=NULL, additive_only=False, lam=NULL,
         opt_crit='lik', nmse=3, ic='aicc', allow_multiplicative_trend=False,
@@ -228,7 +276,6 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
   
   Args:
     x:  an R time series, obtained from forecast_wrapper.ts()
-        For this forecast method, x should be periodic.
     h:  Forecast horizon; default is 2 full periods of a periodic series,
         or 10 steps for non-seasonal series.
     model_spec : Default is 'ZZZ'. A 3-letter string denoting the model type.
@@ -274,11 +321,7 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
             'lambda' : lam}
   ets_model = forecast.ets(x, model=model_spec, damped=damped, alpha=alpha, 
                        beta=beta, gamma=gamma, phi=phi, ic=ic, **kwargs)
-  if h is None:
-    if frequency(x) > 1:
-      h = 2 * frequency(x)
-    else:
-      h = 10
+  h = _get_horizon(x, h)
   level = _map_arg(level)
   # NB: default lambda is correct - it will be taken from model
   return forecast.forecast_ets(ets_model, h, level=level)
@@ -296,7 +339,6 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
   
   Args:
     x : an R time series, obtained from forecast_wrapper.ts()
-        For this forecast method, x should be periodic.
     h : Forecast horizon; default is 2 full periods of a periodic series,
         or 10 steps for non-seasonal series.
     d : order of first differencing. Default is NA, which selects this 
@@ -343,11 +385,7 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
   arima_model = forecast.auto_arima(x, d=d, D=D, stationary=stationary, 
                                     seasonal=seasonal, ic=ic, xreg=xreg, 
                                     test=test, **kwargs)
-  if h is None:
-    if frequency(x) > 1:
-      h = 2 * frequency(x)
-    else:
-      h = 10
+  h = _get_horizon(x, h)
   level = _map_arg(level)
   # NB: default lambda is correct - it will be taken from model
   return forecast.forecast_Arima(arima_model, h, level=level, xreg=newxreg)
@@ -390,8 +428,7 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  if h is None:
-    h = 2 * frequency(x)
+  h = _get_horizon(x, h)
   kwargs = {'s.window' : s_window,
             'lambda' : lam}
   level = _map_arg(level)
@@ -407,8 +444,7 @@ def stl(x, s_window, **kwargs):
   only the mandatory s_window paramter has to be set.
   
   Args:
-    x : an R time series, obtained from forecast_wrapper.ts()
-      For this forecast method, x should be seasonal.
+    x : a seasonal R time series, obtained from forecast_wrapper.ts()
     s_window : either 'periodic' or the span (in lags) of the 
       loess window for seasonal extraction, which should be odd.
       This has no default.

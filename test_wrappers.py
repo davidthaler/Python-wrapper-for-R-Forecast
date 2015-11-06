@@ -56,6 +56,9 @@ class WrappersTestCase(unittest.TestCase):
     self.assertEqual(tuple(robjects.r('start')(ts)), (-3.0, 2.0))
 
 
-
+  def test_get_horizon(self):
+    self.assertEqual(wrappers._get_horizon(self.aus), 8)
+    self.assertEqual(wrappers._get_horizon(self.aus, 10), 10)
+    self.assertEqual(wrappers._get_horizon(self.oil), 10)
 
 

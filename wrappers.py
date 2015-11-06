@@ -27,7 +27,7 @@ def frequency(x):
   return stats.frequency(x)[0]
   
   
-def ts(data, start=1, frequency=1, deltat=1, **kwargs):
+def ts(data, **kwargs):
   '''
   Turns the provided data into an R time series. Only one of frequency and 
   deltat should be given.
@@ -50,10 +50,8 @@ def ts(data, start=1, frequency=1, deltat=1, **kwargs):
     an object containing the data that maps to an R time series (class 'ts')
   '''
   rdata = robjects.FloatVector(data)
-  start = _map_arg(start)
   kwargs = _translate_kwargs(**kwargs)
-  time_series = stats.ts(rdata, start=start, frequency=frequency, 
-                         deltat=deltat, **kwargs)
+  time_series = stats.ts(rdata, **kwargs)
   return time_series
   
   

@@ -45,12 +45,15 @@ def plot_decomp(decomp, **kwargs):
   plt.show()
 
 
-def plot_forecast(fc):
+def plot_forecast(fc, test=None, loc='upper left'):
   '''
   Plots a forecast and its prediction intervals.
   
   Args:
     fc: an object that maps to an R forecast
+    test: Optional ground truth for the forecast period
+    loc: Default is 'upper left', since plots often go up and right.
+      For other values see matplotlib.pyplot.legend().
 
   Output:
     a plot of the series, the mean forecast, and the prediciton intervals
@@ -69,6 +72,12 @@ def plot_forecast(fc):
     upper_series = list(upper.rx(True, k))
     plt.fill_between(fc_idx, lower_series, upper_series, 
                      color='grey', alpha= 0.5/k)
+  labels = ['data', 'forecast']
+  if test is not None:
+    n = min(len(fc_idx), len(test))
+    plt.plot(fc_idx[:n], list(test[:n]), color='green')
+    labels.append('test')
+  plt.legend(labels, loc=loc)
   plt.show()
 
 

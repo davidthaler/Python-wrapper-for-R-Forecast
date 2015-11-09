@@ -132,13 +132,19 @@ decomposition plus the original time series data</dd>
 
 <dl class="function">
 <dt id="plots.plot_forecast">
-<code class="descclassname">plots.</code><code class="descname">plot_forecast</code><span class="sig-paren">(</span><em>fc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plots.html#plot_forecast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plots.plot_forecast" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">plots.</code><code class="descname">plot_forecast</code><span class="sig-paren">(</span><em>fc</em>, <em>test=None</em>, <em>loc='upper left'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plots.html#plot_forecast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#plots.plot_forecast" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots a forecast and its prediction intervals.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fc</strong> &#8211; an object that maps to an R forecast</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fc</strong> &#8211; an object that maps to an R forecast</li>
+<li><strong>test</strong> &#8211; Optional ground truth for the forecast period</li>
+<li><strong>loc</strong> &#8211; Default is &#8216;upper left&#8217;, since plots often go up and right.
+For other values see matplotlib.pyplot.legend().</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>

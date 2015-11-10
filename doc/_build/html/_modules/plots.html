@@ -1,0 +1,245 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>plots &mdash; Rforecast.py 0.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Rforecast.py 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../index.html" class="fa fa-home"> Rforecast.py</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../extractors.html">extractors module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plots.html">plots module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../wrappers.html">wrappers module</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Rforecast.py</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>plots</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for plots</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">The plots module contains functions for producing plots using matplotlib </span>
+<span class="sd">of time series, forecast results and seasonal decompositions.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">rpy2</span> <span class="kn">import</span> <span class="n">robjects</span>
+<span class="kn">import</span> <span class="nn">extractors</span>
+
+
+<div class="viewcode-block" id="plot_ts"><a class="viewcode-back" href="../plots.html#plots.plot_ts">[docs]</a><span class="k">def</span> <span class="nf">plot_ts</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Plots an R time series using matplotlib/pyplot/pandas.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    ts: an object that maps to an R time series</span>
+<span class="sd">    kwargs: keyword arguments passed through a pandas Series</span>
+<span class="sd">      and on to pyplot.plot().</span>
+<span class="sd">    </span>
+<span class="sd">  Output:</span>
+<span class="sd">    a time series plot</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">s</span> <span class="o">=</span> <span class="n">extractors</span><span class="o">.</span><span class="n">ts_as_series</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
+  <span class="n">s</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s">&#39;ggplot&#39;</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+  
+  </div>
+<div class="viewcode-block" id="plot_decomp"><a class="viewcode-back" href="../plots.html#plots.plot_decomp">[docs]</a><span class="k">def</span> <span class="nf">plot_decomp</span><span class="p">(</span><span class="n">decomp</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Plots a seasonal decomposition using matplotlib/pyplot/pandas.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    decomp: an object that maps to a seasonal decomposition in R.</span>
+<span class="sd">    kwargs: keyword arguments passed through a pandas DataFrame</span>
+<span class="sd">      and on to pyplot.plot().</span>
+<span class="sd">      </span>
+<span class="sd">  Output:</span>
+<span class="sd">    a plot of the seasonal, trend and remainder components from the </span>
+<span class="sd">    decomposition plus the original time series data</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">dcdf</span> <span class="o">=</span> <span class="n">extractors</span><span class="o">.</span><span class="n">decomposition</span><span class="p">(</span><span class="n">decomp</span><span class="p">)</span>
+  <span class="n">dcdf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subplots</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s">&#39;ggplot&#39;</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="plot_forecast"><a class="viewcode-back" href="../plots.html#plots.plot_forecast">[docs]</a><span class="k">def</span> <span class="nf">plot_forecast</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s">&#39;upper left&#39;</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Plots a forecast and its prediction intervals.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    fc: an object that maps to an R forecast</span>
+<span class="sd">    test: Optional ground truth for the forecast period</span>
+<span class="sd">    loc: Default is &#39;upper left&#39;, since plots often go up and right.</span>
+<span class="sd">      For other values see matplotlib.pyplot.legend().</span>
+
+<span class="sd">  Output:</span>
+<span class="sd">    a plot of the series, the mean forecast, and the prediciton intervals</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s">&#39;ggplot&#39;</span><span class="p">)</span>
+  <span class="n">data</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">rx2</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">)</span>
+  <span class="n">data_idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">robjects</span><span class="o">.</span><span class="n">r</span><span class="p">(</span><span class="s">&#39;time&#39;</span><span class="p">)(</span><span class="n">data</span><span class="p">))</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data_idx</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">)</span>
+  <span class="n">mean_fc</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">rx2</span><span class="p">(</span><span class="s">&#39;mean&#39;</span><span class="p">)</span>
+  <span class="n">fc_idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">robjects</span><span class="o">.</span><span class="n">r</span><span class="p">(</span><span class="s">&#39;time&#39;</span><span class="p">)(</span><span class="n">mean_fc</span><span class="p">))</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fc_idx</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">mean_fc</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;blue&#39;</span><span class="p">)</span>
+  <span class="n">lower</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">rx2</span><span class="p">(</span><span class="s">&#39;lower&#39;</span><span class="p">)</span>
+  <span class="n">upper</span> <span class="o">=</span> <span class="n">fc</span><span class="o">.</span><span class="n">rx2</span><span class="p">(</span><span class="s">&#39;upper&#39;</span><span class="p">)</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fc</span><span class="o">.</span><span class="n">rx2</span><span class="p">(</span><span class="s">&#39;level&#39;</span><span class="p">),</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">lower_series</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lower</span><span class="o">.</span><span class="n">rx</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+    <span class="n">upper_series</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">upper</span><span class="o">.</span><span class="n">rx</span><span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">fc_idx</span><span class="p">,</span> <span class="n">lower_series</span><span class="p">,</span> <span class="n">upper_series</span><span class="p">,</span> 
+                     <span class="n">color</span><span class="o">=</span><span class="s">&#39;grey&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span> <span class="mf">0.5</span><span class="o">/</span><span class="n">k</span><span class="p">)</span>
+  <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="s">&#39;forecast&#39;</span><span class="p">]</span>
+  <span class="k">if</span> <span class="n">test</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fc_idx</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fc_idx</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="nb">list</span><span class="p">(</span><span class="n">test</span><span class="p">[:</span><span class="n">n</span><span class="p">]),</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;green&#39;</span><span class="p">)</span>
+    <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, David Thaler.
+    </p>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

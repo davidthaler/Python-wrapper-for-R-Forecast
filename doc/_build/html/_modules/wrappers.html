@@ -1,0 +1,796 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>wrappers &mdash; Rforecast.py 0.1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Rforecast.py 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="../index.html" class="fa fa-home"> Rforecast.py</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../extractors.html">extractors module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plots.html">plots module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../wrappers.html">wrappers module</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">Rforecast.py</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>wrappers</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for wrappers</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">The wrappers module contains functions that wrap forecasting functions and </span>
+<span class="sd">seasonal decompositions from R. It is the main module in this package.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">rpy2</span> <span class="kn">import</span> <span class="n">robjects</span>
+<span class="kn">from</span> <span class="nn">rpy2.robjects.packages</span> <span class="kn">import</span> <span class="n">importr</span>
+
+
+<span class="n">forecast</span> <span class="o">=</span> <span class="n">importr</span><span class="p">(</span><span class="s">&#39;forecast&#39;</span><span class="p">)</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">importr</span><span class="p">(</span><span class="s">&#39;stats&#39;</span><span class="p">)</span>
+<span class="n">NULL</span> <span class="o">=</span> <span class="n">robjects</span><span class="o">.</span><span class="n">NULL</span>
+<span class="n">NA</span> <span class="o">=</span> <span class="n">robjects</span><span class="o">.</span><span class="n">NA_Real</span>
+
+
+<div class="viewcode-block" id="frequency"><a class="viewcode-back" href="../wrappers.html#wrappers.frequency">[docs]</a><span class="k">def</span> <span class="nf">frequency</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Function returns the frequency attribute of an R time series. </span>
+<span class="sd">  This should be  1 if the series is non-periodic. Otherwise, it should be </span>
+<span class="sd">  the number of data points in one period, e.g. 12 for monthly data. </span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, obtained from forecast_wrapper.ts()</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    The number of data points per period in x, as a single float</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+  
+  </div>
+<div class="viewcode-block" id="ts"><a class="viewcode-back" href="../wrappers.html#wrappers.ts">[docs]</a><span class="k">def</span> <span class="nf">ts</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Turns the provided data into an R time series. Only one of frequency and </span>
+<span class="sd">  deltat should be given.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    data: Python sequence representing values of a regular time series.</span>
+<span class="sd">    start: default 1; a number or 2-tuple to use as start index of sequence.</span>
+<span class="sd">      If 2-tuple, it is (period, step), e.g. March 2010 is (2010, 3).</span>
+<span class="sd">    end: By default this is not specified, which is usually right. </span>
+<span class="sd">      A number or 2-tuple (like start) to specify the end of the sequence.</span>
+<span class="sd">      If both of start and end are specified, truncation or recycling may </span>
+<span class="sd">      occur, which is usually not sensible.</span>
+<span class="sd">    frequency: default 1; number of points in each time period</span>
+<span class="sd">      e.g. 12 for monthly data with an annual period</span>
+<span class="sd">    deltat: default 1; fraction of sampling period per observation </span>
+<span class="sd">      e.g. 1/12 for monthly data with an annual period. Only one of deltat </span>
+<span class="sd">      and frequency should be defined.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    an object containing the data that maps to an R time series (class &#39;ts&#39;)</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">rdata</span> <span class="o">=</span> <span class="n">robjects</span><span class="o">.</span><span class="n">FloatVector</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+  <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_translate_kwargs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="n">time_series</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">ts</span><span class="p">(</span><span class="n">rdata</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">time_series</span>
+  
+</div>
+<span class="k">def</span> <span class="nf">_get_horizon</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Utility function for getting forecast horizons.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: the R time series to be forecast</span>
+<span class="sd">    h: None, or a forecast horizon</span>
+<span class="sd">    </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    the provided h value, or the correct default if h is None</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">if</span> <span class="n">h</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">h</span>
+  <span class="k">if</span> <span class="n">frequency</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">frequency</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">10</span>
+
+
+<span class="k">def</span> <span class="nf">_map_arg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Many arguments in R may be either numbers or vectors. Rpy2 translates </span>
+<span class="sd">  arguments that are numbers automatically, but does not translate tuples </span>
+<span class="sd">  or lists to R vectors. This function translates tuples or lists to R </span>
+<span class="sd">  vectors, if needed.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: a number or list/tuple</span>
+<span class="sd">    </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    either an R vector containing the values in x, or the number x</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">robjects</span><span class="o">.</span><span class="n">r</span><span class="o">.</span><span class="n">c</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">x</span>
+  
+  
+<span class="k">def</span> <span class="nf">_translate_kwargs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Translates between python and R keyword arguments. </span>
+<span class="sd">  First, tuple arguments are rewritten to R vectors. Next, substitution </span>
+<span class="sd">  is performed for a specific list of arguments. Currently, this is just </span>
+<span class="sd">  &#39;lam&#39; -&gt; &#39;lambda&#39;; &#39;lambda&#39; is a reserved word in python, but is used </span>
+<span class="sd">  a lot in the R Forecast package. Finally, underscore-separated keywords </span>
+<span class="sd">  are turned into R-style, dot-separated ones. If you need to pass an R </span>
+<span class="sd">  argument that has an underscore, you must put it into the &#39;reserved&#39; dict.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    **kwargs: the dict of all keyword arguments to a python function</span>
+<span class="sd">    </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    A dict that can be passed as **kwargs to R functions</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">reserved</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;lam&#39;</span><span class="p">:</span><span class="s">&#39;lambda&#39;</span><span class="p">}</span>
+  <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+      <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">robjects</span><span class="o">.</span><span class="n">r</span><span class="o">.</span><span class="n">c</span><span class="p">(</span><span class="o">*</span><span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">reserved</span><span class="p">:</span>
+      <span class="n">kwargs</span><span class="p">[</span><span class="n">reserved</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+      <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="s">&#39;_&#39;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+      <span class="n">new_key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="s">&#39;.&#39;</span><span class="p">)</span>
+      <span class="n">kwargs</span><span class="p">[</span><span class="n">new_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+      <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+  <span class="k">return</span> <span class="n">kwargs</span>
+  
+  
+<div class="viewcode-block" id="meanf"><a class="viewcode-back" href="../wrappers.html#wrappers.meanf">[docs]</a><span class="k">def</span> <span class="nf">meanf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span><span class="mi">95</span><span class="p">),</span> <span class="n">lam</span><span class="o">=</span><span class="n">NULL</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Perform a mean forecast on the provided data by calling meanf() </span>
+<span class="sd">  from R Forecast.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">    h: default 10; the forecast horizon.</span>
+<span class="sd">    level: A number or list/tuple of prediction interval confidence values.</span>
+<span class="sd">      Default is 80% and 95% intervals.</span>
+<span class="sd">    lam: BoxCox transformation parameter. The default is R&#39;s NULL value.</span>
+<span class="sd">      If NULL, no transformation is applied. Otherwise, a Box-Cox </span>
+<span class="sd">      transformation is applied before forecasting and inverted after.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R object of class &#39;forecast&#39;</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">level</span> <span class="o">=</span> <span class="n">_map_arg</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">meanf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">&#39;lambda&#39;</span> <span class="p">:</span> <span class="n">lam</span><span class="p">})</span>
+  
+  </div>
+<div class="viewcode-block" id="thetaf"><a class="viewcode-back" href="../wrappers.html#wrappers.thetaf">[docs]</a><span class="k">def</span> <span class="nf">thetaf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">95</span><span class="p">)):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Perform a theta forecast on the provided data by calling thetaf() </span>
+<span class="sd">  from R Forecast. The theta forecast is equivalent to a random walk </span>
+<span class="sd">  forecast (rwf in R Forecast) with drift, with the drift equal to half </span>
+<span class="sd">  the slope of a linear regression model fitted to with a trend. The </span>
+<span class="sd">  theta forecast did well in the M3 competition.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">    h: default 10; the forecast horizon.</span>
+<span class="sd">    level: A number or list/tuple of prediction interval confidence values.</span>
+<span class="sd">      Default is 80% and 95% intervals.</span>
+<span class="sd">      </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R object of class &#39;forecast&#39;</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">level</span> <span class="o">=</span> <span class="n">_map_arg</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">thetaf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="naive"><a class="viewcode-back" href="../wrappers.html#wrappers.naive">[docs]</a><span class="k">def</span> <span class="nf">naive</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">95</span><span class="p">),</span> <span class="n">lam</span><span class="o">=</span><span class="n">NULL</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Perform a naive forecast on the provided data by calling naive() </span>
+<span class="sd">  from R Forecast. This is also called the &#39;Last Observed Value&#39; </span>
+<span class="sd">  forecast. The point forecast is a constant at the last observed value.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">    h: default 10; the forecast horizon.</span>
+<span class="sd">    level: A number or list/tuple of prediction interval confidence values.</span>
+<span class="sd">      Default is 80% and 95% intervals.</span>
+<span class="sd">    lam: BoxCox transformation parameter. The default is R&#39;s NULL value.</span>
+<span class="sd">      If NULL, no transformation is applied. Otherwise, a Box-Cox </span>
+<span class="sd">      transformation is applied before forecasting and inverted after.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R object of class &#39;forecast&#39;</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">level</span> <span class="o">=</span> <span class="n">_map_arg</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">naive</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">&#39;lambda&#39;</span> <span class="p">:</span> <span class="n">lam</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="snaive"><a class="viewcode-back" href="../wrappers.html#wrappers.snaive">[docs]</a><span class="k">def</span> <span class="nf">snaive</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">95</span><span class="p">),</span> <span class="n">lam</span><span class="o">=</span><span class="n">NULL</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Perform a seasonal naive forecast on the provided data by calling </span>
+<span class="sd">  snaive() from R Forecast. This is also called the &#39;Last Observed </span>
+<span class="sd">  Seasonal Value&#39; forecast. The point forecast is the value of the </span>
+<span class="sd">  series one full period in the past.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">      For this forecast method, x should be seasonal.</span>
+<span class="sd">    h: Forecast horizon; default is 2 full periods of a periodic series</span>
+<span class="sd">    level: A number or list/tuple of prediction interval confidence values.</span>
+<span class="sd">      Default is 80% and 95% intervals.</span>
+<span class="sd">    lam: BoxCox transformation parameter. The default is R&#39;s NULL value.</span>
+<span class="sd">      If NULL, no transformation is applied. Otherwise, a Box-Cox </span>
+<span class="sd">      transformation is applied before forecasting and inverted after.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R object of class &#39;forecast&#39;</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="n">_get_horizon</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+  <span class="n">level</span> <span class="o">=</span> <span class="n">_map_arg</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">snaive</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">&#39;lambda&#39;</span> <span class="p">:</span> <span class="n">lam</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="rwf"><a class="viewcode-back" href="../wrappers.html#wrappers.rwf">[docs]</a><span class="k">def</span> <span class="nf">rwf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">drift</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">95</span><span class="p">),</span> <span class="n">lam</span><span class="o">=</span><span class="n">NULL</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Perform a random walk forecast on the provided data by calling </span>
+<span class="sd">  rwf() from R Forecast. The forecast can have drift, which allows </span>
+<span class="sd">  a trend in the mean prediction, but by default, it does not.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">    h: default 10; the forecast horizon.</span>
+<span class="sd">    drift: default False. If True, a random walk with drift model is fitted.</span>
+<span class="sd">    level: A number or list/tuple of prediction interval confidence values.</span>
+<span class="sd">      Default is 80% and 95% intervals.</span>
+<span class="sd">    lam: BoxCox transformation parameter. The default is R&#39;s NULL value.</span>
+<span class="sd">      If NULL, no transformation is applied. Otherwise, a Box-Cox </span>
+<span class="sd">      transformation is applied before forecasting and inverted after.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R object of class &#39;forecast&#39;</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">level</span> <span class="o">=</span> <span class="n">_map_arg</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">rwf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">drift</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">&#39;lambda&#39;</span> <span class="p">:</span> <span class="n">lam</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="forecast_ts"><a class="viewcode-back" href="../wrappers.html#wrappers.forecast_ts">[docs]</a><span class="k">def</span> <span class="nf">forecast_ts</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Generate a forecast for the time series x, using ets if x is non-seasonal </span>
+<span class="sd">  or has frequency less than 13, and stlf if x is periodic with frequency </span>
+<span class="sd">  above 13.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series</span>
+<span class="sd">    h: the forecast horizon</span>
+<span class="sd">    level: A number or list/tuple of prediction interval confidence values.</span>
+<span class="sd">      Default is 80% and 95% intervals.</span>
+<span class="sd">    robust: Default False. If True, missing values are filled before </span>
+<span class="sd">      forecasting and outliers are identified and replaced with tsclean().</span>
+<span class="sd">    lam : BoxCox transformation parameter. The default is R&#39;s NULL value.</span>
+<span class="sd">      If NULL, no transformation is applied. Otherwise, a Box-Cox </span>
+<span class="sd">      transformation is applied before forecasting and inverted after.</span>
+<span class="sd">    find_frequency: Default False. If True, function will try to determine </span>
+<span class="sd">      the series frequency from the data.</span>
+<span class="sd">    allow_multiplicative_trend: Default is False. If True, consider models </span>
+<span class="sd">      with a multiplicative trend component. That type of model may grow </span>
+<span class="sd">      explosively.</span>
+<span class="sd">        </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R object of class &#39;forecast&#39;</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="n">_get_horizon</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+  <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_translate_kwargs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">forecast</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ets"><a class="viewcode-back" href="../wrappers.html#wrappers.ets">[docs]</a><span class="k">def</span> <span class="nf">ets</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">model_spec</span><span class="o">=</span><span class="s">&#39;ZZZ&#39;</span><span class="p">,</span> <span class="n">damped</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> 
+        <span class="n">beta</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> <span class="n">phi</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> <span class="n">additive_only</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span>
+        <span class="n">opt_crit</span><span class="o">=</span><span class="s">&#39;lik&#39;</span><span class="p">,</span> <span class="n">nmse</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ic</span><span class="o">=</span><span class="s">&#39;aicc&#39;</span><span class="p">,</span> <span class="n">allow_multiplicative_trend</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+        <span class="n">level</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">95</span><span class="p">)):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Automatically select and fit an exponential smoothing model on the </span>
+<span class="sd">  provided data using the ets() function from the R Forecast package, </span>
+<span class="sd">  and use it to produce a forecast over the given horizon.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x:  an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">    h:  Forecast horizon; default is 2 full periods of a periodic series,</span>
+<span class="sd">        or 10 steps for non-seasonal series.</span>
+<span class="sd">    model_spec : Default is &#39;ZZZ&#39;. A 3-letter string denoting the model type.</span>
+<span class="sd">        Letters denote error, trend, and seasonal parts: A=additive, </span>
+<span class="sd">        N=none, M=multiplicative, Z=automatically selected. Legal </span>
+<span class="sd">        values for first part are (A, M, Z), all values are legal </span>
+<span class="sd">        for other parts.</span>
+<span class="sd">    damped : If True, use a damped trend model. </span>
+<span class="sd">        Default is NULL, which tries damped/undamped models and </span>
+<span class="sd">        selects best model according to the selected ic.</span>
+<span class="sd">    alpha : Smoothing parameter for error term. </span>
+<span class="sd">        Default is NULL, which fits this value.</span>
+<span class="sd">    beta : Smoothing paramter for trend component. </span>
+<span class="sd">        Default is NULL, which fits this value.</span>
+<span class="sd">    gamma : Smoothing parameter for seasonal component. </span>
+<span class="sd">        Default is NULL, which fits this value.</span>
+<span class="sd">    phi : Damping parameter. Default is NULL, which fits this value.</span>
+<span class="sd">    additive_only : Default False. If True, only try additive models.</span>
+<span class="sd">    lam : BoxCox transformation parameter. The default is R&#39;s NULL value.</span>
+<span class="sd">        If NULL, no transformation is applied. Otherwise, a Box-Cox </span>
+<span class="sd">        transformation is applied before forecasting and inverted after.</span>
+<span class="sd">    opt_crit : Optimization criterion. Default is &#39;lik&#39; for log-likelihood. </span>
+<span class="sd">        Other values are &#39;mse&#39; (mean squared error), &#39;amse&#39; (MSE averaged </span>
+<span class="sd">        over first nmse forecast horizons), &#39;sigma&#39; (standard deviation of </span>
+<span class="sd">        residuals), and &#39;mae&#39; (mean absolute error).</span>
+<span class="sd">    nmse : number of steps in average MSE, if &#39;amse&#39; is opt_crit.</span>
+<span class="sd">        Restricted to 1 &lt;= nmse &lt;= 10.</span>
+<span class="sd">    ic : information crierion. Default is &#39;aicc&#39; for bias-corrected AIC.</span>
+<span class="sd">        Other values are &#39;aic&#39; for regular AIC, or &#39;bic&#39; for BIC.</span>
+<span class="sd">    allow_multiplicative_trend : Default is False. If True, consider models </span>
+<span class="sd">        with a multiplicative trend component. That type of model may grow </span>
+<span class="sd">        explosively.</span>
+<span class="sd">    level : A number or list/tuple of prediction interval confidence values.</span>
+<span class="sd">      Default is 80% and 95% intervals.</span>
+
+<span class="sd">        </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R object of class &#39;forecast&#39;</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;allow.multiplicative.trend&#39;</span> <span class="p">:</span> <span class="n">allow_multiplicative_trend</span><span class="p">,</span> 
+            <span class="s">&#39;additive.only&#39;</span> <span class="p">:</span> <span class="n">additive_only</span><span class="p">,</span> 
+            <span class="s">&#39;opt.crit&#39;</span> <span class="p">:</span> <span class="n">opt_crit</span><span class="p">,</span>
+            <span class="s">&#39;lambda&#39;</span> <span class="p">:</span> <span class="n">lam</span><span class="p">}</span>
+  <span class="n">ets_model</span> <span class="o">=</span> <span class="n">forecast</span><span class="o">.</span><span class="n">ets</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model_spec</span><span class="p">,</span> <span class="n">damped</span><span class="o">=</span><span class="n">damped</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> 
+                       <span class="n">beta</span><span class="o">=</span><span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">phi</span><span class="o">=</span><span class="n">phi</span><span class="p">,</span> <span class="n">ic</span><span class="o">=</span><span class="n">ic</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="n">_get_horizon</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+  <span class="n">level</span> <span class="o">=</span> <span class="n">_map_arg</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+  <span class="c"># NB: default lambda is correct - it will be taken from model</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">forecast_ets</span><span class="p">(</span><span class="n">ets_model</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="auto_arima"><a class="viewcode-back" href="../wrappers.html#wrappers.auto_arima">[docs]</a><span class="k">def</span> <span class="nf">auto_arima</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="n">NA</span><span class="p">,</span> <span class="n">D</span><span class="o">=</span><span class="n">NA</span><span class="p">,</span> <span class="n">max_p</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_q</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_P</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_Q</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+               <span class="n">max_order</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_d</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_D</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">start_p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">start_q</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> 
+               <span class="n">start_P</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">start_Q</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">seasonal</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> 
+               <span class="n">ic</span><span class="o">=</span><span class="s">&#39;aicc&#39;</span><span class="p">,</span> <span class="n">xreg</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> <span class="n">newxreg</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s">&#39;kpss&#39;</span><span class="p">,</span> 
+               <span class="n">seasonal_test</span><span class="o">=</span><span class="s">&#39;ocsb&#39;</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">95</span><span class="p">)):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Use the auto.arima function from the R Forecast package to automatically </span>
+<span class="sd">  select an arima model order, fit the model to the provided data, and </span>
+<span class="sd">  generate a forecast.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x : an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">    h : Forecast horizon; default is 2 full periods of a periodic series,</span>
+<span class="sd">        or 10 steps for non-seasonal series.</span>
+<span class="sd">    d : order of first differencing. Default is NA, which selects this </span>
+<span class="sd">        value based on the value of &#39;test&#39; (KPSS test by default).</span>
+<span class="sd">    D : order of seasonal differencing. Default is NA, which selects this </span>
+<span class="sd">        value based on &#39;seasonal_test&#39; (OCSB test by default).</span>
+<span class="sd">    max_p : maximum value for non-seasonal AR order</span>
+<span class="sd">    max_q : maximum value for non-seasonal MA order</span>
+<span class="sd">    max_P : maximum value for seasonal AR order</span>
+<span class="sd">    max_Q : maximum value for seasonal MA order</span>
+<span class="sd">    max_order : maximum value of p + q + P + Q</span>
+<span class="sd">    start_p : starting value for non-seasonal AR order</span>
+<span class="sd">    start_q : starting value for non-seasonal MA order</span>
+<span class="sd">    start_P : starting value for seasonal AR order</span>
+<span class="sd">    start_Q : starting value for seasonal MA order</span>
+<span class="sd">    stationary : Default is False. If True, only consider stationary models.</span>
+<span class="sd">    seasonal : Default is True. If False, only consider non-seasonal models.</span>
+<span class="sd">    ic : information crierion. Default is &#39;aicc&#39; for bias-corrected AIC.</span>
+<span class="sd">        Other values are &#39;aic&#39; for regular AIC, or &#39;bic&#39; for BIC.</span>
+<span class="sd">    xreg : An optional vector or matrix of regressors, which must have one </span>
+<span class="sd">        row/element for each point in x. Default is NULL, for no regressors.</span>
+<span class="sd">    newxreg : If regressors were used to fit the model, then they must be </span>
+<span class="sd">        supplied for the forecast period as newxreg.</span>
+<span class="sd">    test : Test to use to determine number of first differences. Default </span>
+<span class="sd">        is &#39;kpss&#39;, for the KPSS test. Other values are &#39;adf&#39; for augmented </span>
+<span class="sd">        Dickey-Fuller, or &#39;pp&#39; for Phillips-Perron.</span>
+<span class="sd">    seasonal_test : Test to use to determine number of seasonal differences.</span>
+<span class="sd">        Default is &#39;ocsb&#39; for the Osborn-Chui-Smith-Birchenhall  test. </span>
+<span class="sd">        The alternative is &#39;ch&#39; for the Canova-Hansen test. </span>
+<span class="sd">    lam : BoxCox transformation parameter. The default is R&#39;s NULL value.</span>
+<span class="sd">        If NULL, no transformation is applied. Otherwise, a Box-Cox </span>
+<span class="sd">        transformation is applied before forecasting and inverted after.</span>
+<span class="sd">    level : A number or list/tuple of prediction interval confidence values.</span>
+<span class="sd">      Default is 80% and 95% intervals.</span>
+<span class="sd">      </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R object of class &#39;forecast&#39;</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;max.p&#39;</span> <span class="p">:</span> <span class="n">max_p</span><span class="p">,</span> <span class="s">&#39;max.q&#39;</span> <span class="p">:</span> <span class="n">max_q</span><span class="p">,</span> <span class="s">&#39;max.P&#39;</span> <span class="p">:</span> <span class="n">max_P</span><span class="p">,</span> 
+            <span class="s">&#39;max.Q&#39;</span> <span class="p">:</span> <span class="n">max_Q</span><span class="p">,</span> <span class="s">&#39;max.order&#39;</span> <span class="p">:</span> <span class="n">max_order</span><span class="p">,</span> <span class="s">&#39;max.d&#39;</span> <span class="p">:</span> <span class="n">max_d</span><span class="p">,</span> 
+            <span class="s">&#39;max.D&#39;</span> <span class="p">:</span> <span class="n">max_D</span><span class="p">,</span> <span class="s">&#39;start.p&#39;</span> <span class="p">:</span> <span class="n">start_p</span><span class="p">,</span> <span class="s">&#39;start.q&#39;</span> <span class="p">:</span> <span class="n">start_q</span><span class="p">,</span> 
+            <span class="s">&#39;start.P&#39;</span> <span class="p">:</span> <span class="n">start_P</span><span class="p">,</span> <span class="s">&#39;start.Q&#39;</span> <span class="p">:</span> <span class="n">start_Q</span><span class="p">,</span> 
+            <span class="s">&#39;seasonal.test&#39;</span> <span class="p">:</span> <span class="n">seasonal_test</span><span class="p">,</span> <span class="s">&#39;lambda&#39;</span> <span class="p">:</span> <span class="n">lam</span><span class="p">}</span>
+  <span class="n">arima_model</span> <span class="o">=</span> <span class="n">forecast</span><span class="o">.</span><span class="n">auto_arima</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="n">d</span><span class="p">,</span> <span class="n">D</span><span class="o">=</span><span class="n">D</span><span class="p">,</span> <span class="n">stationary</span><span class="o">=</span><span class="n">stationary</span><span class="p">,</span> 
+                                    <span class="n">seasonal</span><span class="o">=</span><span class="n">seasonal</span><span class="p">,</span> <span class="n">ic</span><span class="o">=</span><span class="n">ic</span><span class="p">,</span> <span class="n">xreg</span><span class="o">=</span><span class="n">xreg</span><span class="p">,</span> 
+                                    <span class="n">test</span><span class="o">=</span><span class="n">test</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="n">_get_horizon</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+  <span class="n">level</span> <span class="o">=</span> <span class="n">_map_arg</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+  <span class="c"># NB: default lambda is correct - it will be taken from model</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">forecast_Arima</span><span class="p">(</span><span class="n">arima_model</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="n">xreg</span><span class="o">=</span><span class="n">newxreg</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="stlf"><a class="viewcode-back" href="../wrappers.html#wrappers.stlf">[docs]</a><span class="k">def</span> <span class="nf">stlf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">s_window</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;ets&#39;</span><span class="p">,</span> 
+         <span class="n">etsmodel</span><span class="o">=</span><span class="s">&#39;ZZZ&#39;</span><span class="p">,</span> <span class="n">xreg</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> <span class="n">newxreg</span><span class="o">=</span><span class="n">NULL</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">95</span><span class="p">)):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Constructs a forecast of a seasonal time series by seasonally decomposing </span>
+<span class="sd">  it using an STL decomposition, then making a non-seasonal forecast on the </span>
+<span class="sd">  seasonally adjusted data, and finally adding the naively extended seasonal </span>
+<span class="sd">  component on to the forecast.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x : an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">      For this forecast method, x should be seasonal.</span>
+<span class="sd">    h : Forecast horizon; default is 2 full periods of a periodic series</span>
+<span class="sd">    s.window : either &#39;periodic&#39; or the span (in lags) of the </span>
+<span class="sd">      loess window for seasonal extraction, which should be odd.</span>
+<span class="sd">    robust : If True, use robust fitting in the loess procedure.</span>
+<span class="sd">    lam : BoxCox transformation parameter. The default is R&#39;s NULL value.</span>
+<span class="sd">      If NULL, no transformation is applied. Otherwise, a Box-Cox </span>
+<span class="sd">      transformation is applied before forecasting and inverted after.</span>
+<span class="sd">    method : One of &#39;ets&#39; or &#39;arima&#39;; default is &#39;ets&#39;. Specifies the type </span>
+<span class="sd">      of model to use for forecasting the non-seasonal part.</span>
+<span class="sd">    etsmodel : Default is &#39;ZZZ&#39;. This is only used if &#39;method&#39; is &#39;ets&#39;.</span>
+<span class="sd">      A 3-letter string denoting the ets model type.</span>
+<span class="sd">      Letters denote error, trend, and seasonal parts: A=additive, </span>
+<span class="sd">      N=none, M=multiplicative, Z=automatically selected. Legal </span>
+<span class="sd">      values for first part are (A, M, Z), all values are legal </span>
+<span class="sd">      for other parts.</span>
+<span class="sd">    xreg : Only available if &#39;method&#39; is arima. An optional vector or matrix </span>
+<span class="sd">      of regressors, which must have one row/element for each point in x. </span>
+<span class="sd">      Default is NULL, for no regressors.</span>
+<span class="sd">    newxreg : Only available if &#39;method&#39; is arima. If regressors are used in </span>
+<span class="sd">      fitting, then they must be supplied for the forecast period as newxreg.</span>
+<span class="sd">    level : A number or list/tuple of prediction interval confidence values.</span>
+<span class="sd">      Default is 80% and 95% intervals.</span>
+<span class="sd">      </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R object of class &#39;forecast&#39;</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="n">_get_horizon</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+  <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;s.window&#39;</span> <span class="p">:</span> <span class="n">s_window</span><span class="p">,</span>
+            <span class="s">&#39;lambda&#39;</span> <span class="p">:</span> <span class="n">lam</span><span class="p">}</span>
+  <span class="n">level</span> <span class="o">=</span> <span class="n">_map_arg</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">stlf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">,</span> <span class="n">robust</span><span class="o">=</span><span class="n">robust</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> 
+                       <span class="n">etsmodel</span><span class="o">=</span><span class="n">etsmodel</span><span class="p">,</span> <span class="n">xreg</span><span class="o">=</span><span class="n">xreg</span><span class="p">,</span> <span class="n">newxreg</span><span class="o">=</span><span class="n">newxreg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="stl"><a class="viewcode-back" href="../wrappers.html#wrappers.stl">[docs]</a><span class="k">def</span> <span class="nf">stl</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">s_window</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Perform a decomposition of the time series x into seasonal, trend and </span>
+<span class="sd">  remainder components using loess. Most of the arguments listed below are </span>
+<span class="sd">  in **kwargs, and all of those arguments have sensible defaults. Usually </span>
+<span class="sd">  only the mandatory s_window paramter has to be set.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x : a seasonal R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">    s_window : either &#39;periodic&#39; or the span (in lags) of the </span>
+<span class="sd">      loess window for seasonal extraction, which should be odd.</span>
+<span class="sd">      This has no default.</span>
+<span class="sd">    s_degree : Default 0, should be 0 or 1. Degree of local polynomial </span>
+<span class="sd">      for seasonal extraction.</span>
+<span class="sd">    t_window : The span (in lags) of the loess window for trend extraction, </span>
+<span class="sd">      which should be odd. Default is a sensible, data-dependent value.</span>
+<span class="sd">      See the R docs for the details.</span>
+<span class="sd">    t_degree : Default 0, should be 0 or 1. Degree of local polynomial </span>
+<span class="sd">      for trend extraction.</span>
+<span class="sd">    l_window : Span in lags of the loess window used to low-pass filter each </span>
+<span class="sd">      seasonal subseries. The default is first odd number greater than or </span>
+<span class="sd">      equal to frequency, which is recommmended.</span>
+<span class="sd">    s_jump, t_jump, l_jump : integer parameters (min. 1) to increase speed of </span>
+<span class="sd">      each smoother by skipping data points.</span>
+<span class="sd">    l_degree : Default is t.window, must be 0 or 1. Degree of local polynomial </span>
+<span class="sd">      for subseries low-pass filter.</span>
+<span class="sd">    robust : Default is False. If True, robust loess fitting used.</span>
+<span class="sd">    inner : number of backfitting iterations</span>
+<span class="sd">    outer : number of outer robustness iterations</span>
+<span class="sd">    na_action : Default is na.fail, which means that the user has to fill or </span>
+<span class="sd">      remove any missing values. If used, it must be an object that maps to </span>
+<span class="sd">      an R function, obtained from rpy2.</span>
+<span class="sd">      </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R STL decomposition (class &#39;stl&#39;)</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;s.window&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s_window</span>
+  <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_translate_kwargs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">stl</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  
+</div>
+<div class="viewcode-block" id="decompose"><a class="viewcode-back" href="../wrappers.html#wrappers.decompose">[docs]</a><span class="k">def</span> <span class="nf">decompose</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s">&#39;additive&#39;</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Performs a classical seasonal decomposition of a time series into </span>
+<span class="sd">  season, trend and remainder components.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">      The series should be seasonal.</span>
+<span class="sd">    type: Type of seasonal decomposition to perform.</span>
+<span class="sd">      Default is &#39;additive&#39;, other option is &#39;multiplicative&#39;.</span>
+<span class="sd">      </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    a seasonal decomposition of the time series x, contained in an </span>
+<span class="sd">    object that maps to an R object of class &#39;decomposed.ts&#39;.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">decompose</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">)</span>
+
+  </div>
+<div class="viewcode-block" id="seasadj"><a class="viewcode-back" href="../wrappers.html#wrappers.seasadj">[docs]</a><span class="k">def</span> <span class="nf">seasadj</span><span class="p">(</span><span class="n">decomp</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Return a seasonally adjusted version of the origin time series that </span>
+<span class="sd">  was seasonally decomposed to get decomp.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    decomp: a seasonal decomposition from stl or decompose</span>
+<span class="sd">    </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps an R time series of the seasonally adjusted</span>
+<span class="sd">    values of the series that decomp was formed from</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">seasadj</span><span class="p">(</span><span class="n">decomp</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="sindexf"><a class="viewcode-back" href="../wrappers.html#wrappers.sindexf">[docs]</a><span class="k">def</span> <span class="nf">sindexf</span><span class="p">(</span><span class="n">decomp</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Projects the seasonal component of a seasonal decomposition of a time series </span>
+<span class="sd">  forward by h time steps into the future.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    decomp: a seasonal decomposition from stl or decompose</span>
+<span class="sd">    h: a forecast horizon</span>
+<span class="sd">    </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to am R time series containing the seasonal component </span>
+<span class="sd">    of decomp, projected naively forward h steps.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">sindexf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+  
+  </div>
+<div class="viewcode-block" id="BoxCox"><a class="viewcode-back" href="../wrappers.html#wrappers.BoxCox">[docs]</a><span class="k">def</span> <span class="nf">BoxCox</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lam</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Applies a Box-Cox transformation to the data in x. This can stabilize the </span>
+<span class="sd">  variance of x, so that forecast model assumptions are more nearly satisfied.</span>
+<span class="sd">  </span>
+<span class="sd">  For x != 0, this is (x^lambda - 1) / lambda.</span>
+<span class="sd">  For x = 0, it is log(x).</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">    lam: BoxCox transformation parameter. </span>
+<span class="sd">      </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    an object that maps to an R time series containing x, tranformed</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">BoxCox</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">&#39;lambda&#39;</span> <span class="p">:</span> <span class="n">lam</span><span class="p">})</span>
+  
+  </div>
+<div class="viewcode-block" id="InvBoxCox"><a class="viewcode-back" href="../wrappers.html#wrappers.InvBoxCox">[docs]</a><span class="k">def</span> <span class="nf">InvBoxCox</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lam</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Invert a BoxCox transformation.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, with values that are on the scale of a BoxCox</span>
+<span class="sd">      transformation with parameter lambda=lam</span>
+<span class="sd">    lam: BoxCox transformation parameter. </span>
+<span class="sd">      </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    an R timeseries with values of x transformed back to the original scale</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">InvBoxCox</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">&#39;lambda&#39;</span> <span class="p">:</span> <span class="n">lam</span><span class="p">})</span>
+  
+  </div>
+<div class="viewcode-block" id="BoxCox_lambda"><a class="viewcode-back" href="../wrappers.html#wrappers.BoxCox_lambda">[docs]</a><span class="k">def</span> <span class="nf">BoxCox_lambda</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;guerrero&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Function to find a good value of the BoxCox transformation parameter, lambda.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, obtained from forecast_wrapper.ts()</span>
+<span class="sd">    method: Method of calculating lambda. </span>
+<span class="sd">      Default is &#39;guerrero&#39;, other option is &#39;lik&#39; for log-likelihood.</span>
+<span class="sd">    upper: Upper limit of possible lambda values, default 2.</span>
+<span class="sd">    lower: Lower limit of possible lambda values, default -1.</span>
+<span class="sd">    </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    value of lambda for the series x, as calculated by the selected method</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">BoxCox_lambda</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">upper</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="na_interp"><a class="viewcode-back" href="../wrappers.html#wrappers.na_interp">[docs]</a><span class="k">def</span> <span class="nf">na_interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lam</span><span class="o">=</span><span class="n">NULL</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Funtction for interpolating missing values in R time series. This function </span>
+<span class="sd">  uses linear interpolation for non-seasonal data. For seasonal data, it </span>
+<span class="sd">  uses an STL decomposition, imputing the seasonal value.</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series, with values that are on the scale of a BoxCox</span>
+<span class="sd">      transformation with parameter lambda=lam</span>
+<span class="sd">    lam: BoxCox transformation parameter. The default is R&#39;s NULL value.</span>
+<span class="sd">      If NULL, no transformation is applied. Otherwise, a Box-Cox </span>
+<span class="sd">      transformation is applied before forecasting and inverted after.  </span>
+<span class="sd">      </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    the time series x, with any NA values filled with imputed values</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">na_interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">&#39;lambda&#39;</span> <span class="p">:</span> <span class="n">lam</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="accuracy"><a class="viewcode-back" href="../wrappers.html#wrappers.accuracy">[docs]</a><span class="k">def</span> <span class="nf">accuracy</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  # TODO: narrative doc</span>
+<span class="sd">  </span>
+<span class="sd">  Args:</span>
+<span class="sd">    fc: an R forecast object, or an R vector containing forecasts</span>
+<span class="sd">    x: optional R vector of true values for the forecast (test data)</span>
+<span class="sd">    d: Number of first differences taken in forecast, default is none.</span>
+<span class="sd">    D: Number of seasonal differences taken in forecast, default is none.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    An R list of forecast accuracy measures. </span>
+<span class="sd">    Use extractors.accuracy to get a Pandas DataFrame.  </span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">accuracy</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="tsclean"><a class="viewcode-back" href="../wrappers.html#wrappers.tsclean">[docs]</a><span class="k">def</span> <span class="nf">tsclean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Identify and replace outliers. Uses loess for non-seasonal series and </span>
+<span class="sd">  an STL decomposition for seasonal series. Optionally fills missing values.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    x: an R time series</span>
+<span class="sd">    replace_missing: Default False. </span>
+<span class="sd">      If True, use na_interp to fill missing values in x.</span>
+<span class="sd">    lam: optional BoxCox transformation parameter.</span>
+<span class="sd">    </span>
+<span class="sd">  Returns:</span>
+<span class="sd">    x, with outliers replaced and optionally, missing values filled</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_translate_kwargs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">forecast</span><span class="o">.</span><span class="n">tsclean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, David Thaler.
+    </p>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

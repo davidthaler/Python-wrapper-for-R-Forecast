@@ -30,7 +30,8 @@ def frequency(x):
 def ts(data, **kwargs):
   '''
   Turns the provided data into an R time series. Only one of frequency and 
-  deltat should be given.
+  deltat should be given. If both of start and end are specified, truncation 
+  or recycling may occur, which is usually not sensible.
   
   Args:
     data: Python sequence representing values of a regular time series.
@@ -38,8 +39,6 @@ def ts(data, **kwargs):
       If 2-tuple, it is (period, step), e.g. March 2010 is (2010, 3).
     end: By default this is not specified, which is usually right. 
       A number or 2-tuple (like start) to specify the end of the sequence.
-      If both of start and end are specified, truncation or recycling may 
-      occur, which is usually not sensible.
     frequency: default 1; number of points in each time period
       e.g. 12 for monthly data with an annual period
     deltat: default 1; fraction of sampling period per observation 

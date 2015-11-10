@@ -1,5 +1,5 @@
 import unittest
-import wrappers
+from rforecast import wrappers
 import rpy2
 from rpy2 import robjects
 from rpy2.robjects.packages import importr

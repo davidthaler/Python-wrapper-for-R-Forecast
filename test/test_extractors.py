@@ -1,6 +1,6 @@
 import unittest
-import wrappers
-import extractors
+from rforecast import wrappers
+from rforecast import extractors
 import rpy2
 import pandas
 from rpy2 import robjects

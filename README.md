@@ -9,8 +9,8 @@ A few less-commnonly used functions and arguments are not exposed.
 An example of generating a forecast:
 ```
 import rpy2.robjects as ro
-import wrapper
-import extractor
+from rforecast import wrapper
+from rforecast import extractor
 
 wine = ro.r('wineind')
 fc = wrapper.stlf(wine)

@@ -43,8 +43,8 @@ def series_as_ts(x):
   '''
   Takes a Pandas Series with either a seasonal or non-seasonal time series 
   in it, and converts it to an R time series (class 'ts'). If the series is 
-  seasonal, x must have a MultiIndex encoding its levels. If it is 
-  non-seasonal, x must have an ordinary index with the periods.
+  seasonal, x must have a MultiIndex encoding the inner and outer period. 
+  If it is non-seasonal, x must have an ordinary index with the periods.
   
   Args:
     x: a Pandas Series
@@ -65,7 +65,7 @@ def sequence_as_series(x, start=1, freq=1):
   correct index for the type of Series created.
   
   Args:
-    x: a Python list containing time series data
+    x: a time series as a Python list, Pandas Series or numpy ndarray (1-D)
     start: default 1; a number or 2-tuple to use as start index of sequence.
       If 2-tuple, it is (period, step), e.g. March 2010 is (2010, 3).
     freq: default 1; number of points in each time period
@@ -76,7 +76,7 @@ def sequence_as_series(x, start=1, freq=1):
   '''
   if freq <= 1:
     idx = range(start, start + len(x))
-    return pd.Series(x, index=idx)
+    return pd.Series(list(x), index=idx)
   else:
     if type(start) not in (list, tuple):
       start = (start, 1)
@@ -90,7 +90,7 @@ def sequence_as_series(x, start=1, freq=1):
       if j > freq:
         i += 1
         j = 1
-    return pd.Series(x, index=[outer, inner])
+    return pd.Series(data=list(x), index=[outer, inner])
 
 
 

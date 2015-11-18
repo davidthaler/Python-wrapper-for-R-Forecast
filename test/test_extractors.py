@@ -36,10 +36,10 @@ class ExtractorsTestCase(unittest.TestCase):
     aus = extractors.ts_as_series(self.aus)
     self.assertAlmostEqual(aus[(1999, 1)], 30.0525, places=3)
     self.assertAlmostEqual(aus[(2010, 4)], 47.9137, places=3)
-    self.assertEquals(aus[2010].shape, (4, ))
-    self.assertEquals(type(aus.index), pandas.core.index.MultiIndex)
-    self.assertEquals(aus.index[0], (1999, 1))
-    self.assertEquals(aus.index[-1], (2010, 4))
+    self.assertEqual(aus[2010].shape, (4, ))
+    self.assertEqual(type(aus.index), pandas.core.index.MultiIndex)
+    self.assertEqual(aus.index[0], (1999, 1))
+    self.assertEqual(aus.index[-1], (2010, 4))
 
 
   def test_mean_prediction(self):
@@ -52,9 +52,9 @@ class ExtractorsTestCase(unittest.TestCase):
   def test_decomposition(self):
     dc = wrappers.stl(self.aus, 7)
     dcdf = extractors.decomposition(dc)
-    self.assertEquals(type(dcdf.index), pandas.core.index.MultiIndex)
-    self.assertEquals(dcdf.index[0], (1999, 1))
-    self.assertEquals(dcdf.index[-1], (2010, 4))
+    self.assertEqual(type(dcdf.index), pandas.core.index.MultiIndex)
+    self.assertEqual(dcdf.index[0], (1999, 1))
+    self.assertEqual(dcdf.index[-1], (2010, 4))
     self.assertEqual(dcdf.shape, (48, 4))
     self.assertEqual(list(dcdf.columns), [u'data', u'seasonal', u'trend', u'remainder'])
     self.assertAlmostEqual(dcdf.data[(1999, 1)], 30.0525, places=3)
@@ -68,9 +68,9 @@ class ExtractorsTestCase(unittest.TestCase):
     
     dc = wrappers.decompose(self.aus)
     dcdf = extractors.decomposition(dc)
-    self.assertEquals(type(dcdf.index), pandas.core.index.MultiIndex)
-    self.assertEquals(dcdf.index[0], (1999, 1))
-    self.assertEquals(dcdf.index[-1], (2010, 4))
+    self.assertEqual(type(dcdf.index), pandas.core.index.MultiIndex)
+    self.assertEqual(dcdf.index[0], (1999, 1))
+    self.assertEqual(dcdf.index[-1], (2010, 4))
     self.assertEqual(dcdf.shape, (48, 4))
     self.assertEqual(list(dcdf.columns), [u'data', u'seasonal', u'trend', u'remainder'])
     self.assertAlmostEqual(dcdf.data[(1999, 1)], 30.0525, places=3)

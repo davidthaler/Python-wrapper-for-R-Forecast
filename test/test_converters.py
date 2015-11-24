@@ -13,6 +13,22 @@ class ConvertersTestCase(unittest.TestCase):
     importr('fpp')
     self.oil = list(robjects.r('oil'))
     self.aus = list(robjects.r('austourists'))
+
+
+  def test_translate_kwargs(self):
+    self.assertEquals(converters.translate_kwargs(lam=1), {'lambda' : 1})
+    arg = converters.translate_kwargs(levels=(80, 95))
+    self.assertEquals(type(arg['levels']), robjects.vectors.IntVector)
+    self.assertEquals(list(arg['levels']), [80, 95])
+    arg = converters.translate_kwargs(s_window=7)
+    self.assertEquals(arg, {'s.window' : 7})
+
+    
+  def test_map_arg(self):
+    self.assertEqual(converters.map_arg(3), 3)
+    arg = converters.map_arg((1, 2))
+    self.assertEqual(list(arg), [1, 2])
+    self.assertEqual(type(arg), robjects.vectors.IntVector)
     
     
   def test_sequence_as_series(self):

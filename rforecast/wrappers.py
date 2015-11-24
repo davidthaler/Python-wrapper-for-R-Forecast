@@ -6,6 +6,8 @@ from rpy2 import robjects
 from rpy2.robjects.packages import importr
 import numpy
 import pandas
+import converters
+
 
 forecast = importr('forecast')
 stats = importr('stats')
@@ -26,33 +28,6 @@ def frequency(x):
     The number of data points per period in x, as a single float
   '''
   return stats.frequency(x)[0]
-  
-  
-def ts(data, **kwargs):
-  '''
-  Turns the provided data into an R time series. Only one of frequency and 
-  deltat should be given. If both of start and end are specified, truncation 
-  or recycling may occur, which is usually not sensible.
-  
-  Args:
-    data: Python sequence representing values of a regular time series.
-    start: default 1; a number or 2-tuple to use as start index of sequence.
-      If 2-tuple, it is (period, step), e.g. March 2010 is (2010, 3).
-    end: By default this is not specified, which is usually right. 
-      A number or 2-tuple (like start) to specify the end of the sequence.
-    frequency: default 1; number of points in each time period
-      e.g. 12 for monthly data with an annual period
-    deltat: default 1; fraction of sampling period per observation 
-      e.g. 1/12 for monthly data with an annual period. Only one of deltat 
-      and frequency should be defined.
-
-  Returns:
-    an object containing the data that maps to an R time series (class 'ts')
-  '''
-  rdata = robjects.FloatVector(data)
-  kwargs = _translate_kwargs(**kwargs)
-  time_series = stats.ts(rdata, **kwargs)
-  return time_series
   
   
 def matrix(x):
@@ -96,55 +71,6 @@ def _get_horizon(x, h=None):
   else:
     return 10
 
-
-def _map_arg(x):
-  '''
-  Many arguments in R may be either numbers or vectors. Rpy2 translates 
-  arguments that are numbers automatically, but does not translate tuples 
-  or lists to R vectors. This function translates tuples or lists to R 
-  vectors, if needed.
-  
-  Args:
-    x: a number or list/tuple
-    
-  Returns:
-    either an R vector containing the values in x, or the number x
-  '''
-  if type(x) in (tuple, list):
-    return robjects.r.c(*x)
-  else:
-    return x
-  
-  
-def _translate_kwargs(**kwargs):
-  '''
-  Translates between python and R keyword arguments. 
-  First, tuple arguments are rewritten to R vectors. Next, substitution 
-  is performed for a specific list of arguments. Currently, this is just 
-  'lam' -> 'lambda'; 'lambda' is a reserved word in python, but is used 
-  a lot in the R Forecast package. Finally, underscore-separated keywords 
-  are turned into R-style, dot-separated ones. If you need to pass an R 
-  argument that has an underscore, you must put it into the 'reserved' dict.
-  
-  Args:
-    **kwargs: the dict of all keyword arguments to a python function
-    
-  Returns:
-    A dict that can be passed as **kwargs to R functions
-  '''
-  reserved = {'lam':'lambda'}
-  for key in kwargs:
-    if type(kwargs[key]) in (list, tuple):
-      kwargs[key] = robjects.r.c(*kwargs[key])
-    if key in reserved:
-      kwargs[reserved[key]] = kwargs[key]
-      del kwargs[key]
-    elif '_' in key:
-      new_key = key.replace('_', '.')
-      kwargs[new_key] = kwargs[key]
-      del kwargs[key]
-  return kwargs
-  
   
 def meanf(x, h=10, level=(80,95), lam=NULL):
   '''
@@ -163,7 +89,7 @@ def meanf(x, h=10, level=(80,95), lam=NULL):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  level = _map_arg(level)
+  level = converters.map_arg(level)
   return forecast.meanf(x, h, level=level, **{'lambda' : lam})
   
   
@@ -184,7 +110,7 @@ def thetaf(x, h=10, level=(80, 95)):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  level = _map_arg(level)
+  level = converters.map_arg(level)
   return forecast.thetaf(x, h, level=level)
 
 
@@ -206,7 +132,7 @@ def naive(x, h=10, level=(80, 95), lam=NULL):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  level = _map_arg(level)
+  level = converters.map_arg(level)
   return forecast.naive(x, h, level=level, **{'lambda' : lam})
 
 
@@ -231,7 +157,7 @@ def snaive(x, h=None, level=(80, 95), lam=NULL):
     an object that maps to an R object of class 'forecast'
   '''
   h = _get_horizon(x, h)
-  level = _map_arg(level)
+  level = converters.map_arg(level)
   return forecast.snaive(x, h, level=level, **{'lambda' : lam})
 
 
@@ -254,7 +180,7 @@ def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   Returns:
     an object that maps to an R object of class 'forecast'
   '''
-  level = _map_arg(level)
+  level = converters.map_arg(level)
   return forecast.rwf(x, h, drift, level=level, **{'lambda' : lam})
 
 
@@ -284,7 +210,7 @@ def forecast_ts(x, h=None, **kwargs):
     an object that maps to an R object of class 'forecast'
   '''
   h = _get_horizon(x, h)
-  kwargs = _translate_kwargs(**kwargs)
+  kwargs = converters.translate_kwargs(**kwargs)
   return forecast.forecast(x, h=h, **kwargs)
 
 
@@ -345,7 +271,7 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
   ets_model = forecast.ets(x, model=model_spec, damped=damped, alpha=alpha, 
                        beta=beta, gamma=gamma, phi=phi, ic=ic, **kwargs)
   h = _get_horizon(x, h)
-  level = _map_arg(level)
+  level = converters.map_arg(level)
   # NB: default lambda is correct - it will be taken from model
   return forecast.forecast_ets(ets_model, h, level=level)
 
@@ -409,7 +335,7 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
                                     seasonal=seasonal, ic=ic, xreg=xreg, 
                                     test=test, **kwargs)
   h = _get_horizon(x, h)
-  level = _map_arg(level)
+  level = converters.map_arg(level)
   # NB: default lambda is correct - it will be taken from model
   return forecast.forecast_Arima(arima_model, h, level=level, xreg=newxreg)
 
@@ -454,7 +380,7 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
   h = _get_horizon(x, h)
   kwargs = {'s.window' : s_window,
             'lambda' : lam}
-  level = _map_arg(level)
+  level = converters.map_arg(level)
   return forecast.stlf(x, h, level=level, robust=robust, method=method, 
                        etsmodel=etsmodel, xreg=xreg, newxreg=newxreg, **kwargs)
 
@@ -496,7 +422,7 @@ def stl(x, s_window, **kwargs):
     an object that maps to an R STL decomposition (class 'stl')
   '''
   kwargs['s.window'] = s_window
-  kwargs = _translate_kwargs(**kwargs)
+  kwargs = converters.translate_kwargs(**kwargs)
   return stats.stl(x, **kwargs)
   
 
@@ -651,7 +577,7 @@ def tsclean(x, **kwargs):
   Returns:
     x, with outliers replaced and optionally, missing values filled
   '''
-  kwargs = _translate_kwargs(**kwargs)
+  kwargs = converters.translate_kwargs(**kwargs)
   return forecast.tsclean(x, **kwargs)
 
 

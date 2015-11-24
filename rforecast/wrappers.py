@@ -7,6 +7,7 @@ from rpy2.robjects.packages import importr
 import numpy
 import pandas
 import converters
+from decorators import wrap_forecast, wrap_decomp
 
 
 forecast = importr('forecast')
@@ -71,7 +72,8 @@ def _get_horizon(x, h=None):
   else:
     return 10
 
-  
+
+@wrap_forecast
 def meanf(x, h=10, level=(80,95), lam=NULL):
   '''
   Perform a mean forecast on the provided data by calling meanf() 
@@ -92,7 +94,8 @@ def meanf(x, h=10, level=(80,95), lam=NULL):
   level = converters.map_arg(level)
   return forecast.meanf(x, h, level=level, **{'lambda' : lam})
   
-  
+
+@wrap_forecast
 def thetaf(x, h=10, level=(80, 95)):
   '''
   Perform a theta forecast on the provided data by calling thetaf() 
@@ -114,6 +117,7 @@ def thetaf(x, h=10, level=(80, 95)):
   return forecast.thetaf(x, h, level=level)
 
 
+@wrap_forecast
 def naive(x, h=10, level=(80, 95), lam=NULL):
   '''
   Perform a naive forecast on the provided data by calling naive() 
@@ -136,6 +140,7 @@ def naive(x, h=10, level=(80, 95), lam=NULL):
   return forecast.naive(x, h, level=level, **{'lambda' : lam})
 
 
+@wrap_forecast
 def snaive(x, h=None, level=(80, 95), lam=NULL):
   '''
   Perform a seasonal naive forecast on the provided data by calling 
@@ -161,6 +166,7 @@ def snaive(x, h=None, level=(80, 95), lam=NULL):
   return forecast.snaive(x, h, level=level, **{'lambda' : lam})
 
 
+@wrap_forecast
 def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   '''
   Perform a random walk forecast on the provided data by calling 
@@ -184,6 +190,7 @@ def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   return forecast.rwf(x, h, drift, level=level, **{'lambda' : lam})
 
 
+@wrap_forecast
 def forecast_ts(x, h=None, **kwargs):
   '''
   Generate a forecast for the time series x, using ets if x is non-seasonal 
@@ -214,6 +221,7 @@ def forecast_ts(x, h=None, **kwargs):
   return forecast.forecast(x, h=h, **kwargs)
 
 
+@wrap_forecast
 def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL, 
         beta=NULL, gamma=NULL, phi=NULL, additive_only=False, lam=NULL,
         opt_crit='lik', nmse=3, ic='aicc', allow_multiplicative_trend=False,
@@ -276,6 +284,7 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
   return forecast.forecast_ets(ets_model, h, level=level)
 
 
+@wrap_forecast
 def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
                max_order=5, max_d=2, max_D=1, start_p=2, start_q=2, 
                start_P=1, start_Q=1, stationary=False, seasonal=True, 
@@ -340,6 +349,7 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
   return forecast.forecast_Arima(arima_model, h, level=level, xreg=newxreg)
 
 
+@wrap_forecast
 def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets', 
          etsmodel='ZZZ', xreg=NULL, newxreg=NULL, level=(80, 95)):
   '''
@@ -385,6 +395,7 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
                        etsmodel=etsmodel, xreg=xreg, newxreg=newxreg, **kwargs)
 
 
+@wrap_decomp
 def stl(x, s_window, **kwargs):
   '''
   Perform a decomposition of the time series x into seasonal, trend and 
@@ -426,6 +437,7 @@ def stl(x, s_window, **kwargs):
   return stats.stl(x, **kwargs)
   
 
+@wrap_decomp
 def decompose(x, type='additive'):
   '''
   Performs a classical seasonal decomposition of a time series into 

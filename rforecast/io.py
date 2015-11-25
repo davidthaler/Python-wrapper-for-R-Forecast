@@ -23,18 +23,17 @@ def read_ts(file):
   df = pd.read_csv(file, header=None)
   _, ncols = df.shape
   if ncols == 1:
-    return pd.Series(df[0].values)
+    data = df[0].values
+    index = range(1, len(data) + 1)
   elif ncols == 2:
     data = df[1].values
     index = df[0].values
-    return pd.Series(data=data, index=index)
   elif ncols == 3:
     data = df[2].values
     index = [df[0].values, df[1].values]
-    return pd.Series(data=data, index=index)
   else:
     raise IOError('File %s has wrong format' % file)
-
+  return pd.Series(data=data, index=index)
 
 
 

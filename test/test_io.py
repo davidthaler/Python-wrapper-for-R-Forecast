@@ -8,7 +8,7 @@ class IOTestCase(unittest.TestCase):
     # The no-index case:
     oil2 = io.read_ts('data/oil2.csv')
     self.assertEqual(len(oil2), 46)
-    self.assertListEqual(list(oil2.index), range(46))
+    self.assertListEqual(list(oil2.index), range(1, 46 + 1))
     
     # The non-seasonal index case:
     oil = io.read_ts('data/oil.csv')

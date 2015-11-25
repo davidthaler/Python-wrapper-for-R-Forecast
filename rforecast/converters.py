@@ -5,7 +5,7 @@ with the correct index types. Seasonal time series are represented
 as a Pandas Series with a MultiIndex in which the first level is the longer, 
 outer time period and the second level is the cycle.
 '''
-import pandas as pd
+import pandas
 import wrappers
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
@@ -158,7 +158,7 @@ def sequence_as_series(x, start=1, freq=1):
   '''
   if freq <= 1:
     idx = range(start, start + len(x))
-    return pd.Series(list(x), index=idx)
+    return pandas.Series(list(x), index=idx)
   else:
     if type(start) not in (list, tuple):
       start = (start, 1)
@@ -172,7 +172,7 @@ def sequence_as_series(x, start=1, freq=1):
       if j > freq:
         i += 1
         j = 1
-    return pd.Series(data=list(x), index=[outer, inner])
+    return pandas.Series(data=list(x), index=[outer, inner])
 
 
 

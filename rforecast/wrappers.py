@@ -7,7 +7,7 @@ from rpy2.robjects.packages import importr
 import numpy
 import pandas
 import converters
-from decorators import wrap_forecast, wrap_decomp
+from decorators import wrap_forecast, wrap_decomp, wrap_series, wrap_input
 
 
 forecast = importr('forecast')
@@ -486,7 +486,8 @@ def sindexf(decomp, h):
   '''
   return forecast.sindexf(x, h)
   
-  
+
+@wrap_series
 def BoxCox(x, lam):
   '''
   Applies a Box-Cox transformation to the data in x. This can stabilize the 
@@ -504,7 +505,8 @@ def BoxCox(x, lam):
   '''
   return forecast.BoxCox(x, **{'lambda' : lam})
   
-  
+
+@wrap_series
 def InvBoxCox(x, lam):
   '''
   Invert a BoxCox transformation.
@@ -519,7 +521,8 @@ def InvBoxCox(x, lam):
   '''
   return forecast.InvBoxCox(x, **{'lambda' : lam})
   
-  
+
+@wrap_input
 def BoxCox_lambda(x, method='guerrero', lower=-1, upper=2):
   '''
   Function to find a good value of the BoxCox transformation parameter, lambda.
@@ -534,9 +537,10 @@ def BoxCox_lambda(x, method='guerrero', lower=-1, upper=2):
   Returns:
     value of lambda for the series x, as calculated by the selected method
   '''
-  return forecast.BoxCox_lambda(x, method=method, lower=lower, upper=upper)
+  return forecast.BoxCox_lambda(x, method=method, lower=lower, upper=upper)[0]
 
 
+@wrap_series
 def na_interp(x, lam=NULL):
   '''
   Funtction for interpolating missing values in R time series. This function 
@@ -575,6 +579,7 @@ def accuracy(fc, x=None, **kwargs):
   return forecast.accuracy(fc, **kwargs)
 
 
+@wrap_series
 def tsclean(x, **kwargs):
   '''
   Identify and replace outliers. Uses loess for non-seasonal series and 
@@ -582,7 +587,7 @@ def tsclean(x, **kwargs):
 
   Args:
     x: an R time series
-    replace_missing: Default False. 
+    replace_missing: Default True. 
       If True, use na_interp to fill missing values in x.
     lam: optional BoxCox transformation parameter.
     

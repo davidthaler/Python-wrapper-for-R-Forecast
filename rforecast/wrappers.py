@@ -16,6 +16,7 @@ NULL = robjects.NULL
 NA = robjects.NA_Real
 
 
+@wrap_input
 def frequency(x):
   '''
   Function returns the frequency attribute of an R time series. 
@@ -23,8 +24,8 @@ def frequency(x):
   the number of data points in one period, e.g. 12 for monthly data. 
   
   Args:
-    x: an R time series, obtained from forecast_wrapper.ts()
-
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
   Returns:
     The number of data points per period in x, as a single float
   '''
@@ -80,7 +81,8 @@ def meanf(x, h=10, level=(80,95), lam=NULL):
   from R Forecast.
   
   Args:
-    x: an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     h: default 10; the forecast horizon.
     level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
@@ -89,7 +91,8 @@ def meanf(x, h=10, level=(80,95), lam=NULL):
       transformation is applied before forecasting and inverted after.
 
   Returns:
-    an object that maps to an R object of class 'forecast'
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
   '''
   level = converters.map_arg(level)
   return forecast.meanf(x, h, level=level, **{'lambda' : lam})
@@ -105,13 +108,15 @@ def thetaf(x, h=10, level=(80, 95)):
   theta forecast did well in the M3 competition.
   
   Args:
-    x: an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     h: default 10; the forecast horizon.
     level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
       
   Returns:
-    an object that maps to an R object of class 'forecast'
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
   '''
   level = converters.map_arg(level)
   return forecast.thetaf(x, h, level=level)
@@ -125,7 +130,8 @@ def naive(x, h=10, level=(80, 95), lam=NULL):
   forecast. The point forecast is a constant at the last observed value.
   
   Args:
-    x: an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     h: default 10; the forecast horizon.
     level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
@@ -134,7 +140,8 @@ def naive(x, h=10, level=(80, 95), lam=NULL):
       transformation is applied before forecasting and inverted after.
 
   Returns:
-    an object that maps to an R object of class 'forecast'
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
   '''
   level = converters.map_arg(level)
   return forecast.naive(x, h, level=level, **{'lambda' : lam})
@@ -149,7 +156,8 @@ def snaive(x, h=None, level=(80, 95), lam=NULL):
   series one full period in the past.
   
   Args:
-    x: an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
       For this forecast method, x should be seasonal.
     h: Forecast horizon; default is 2 full periods of a periodic series
     level: A number or list/tuple of prediction interval confidence values.
@@ -159,7 +167,8 @@ def snaive(x, h=None, level=(80, 95), lam=NULL):
       transformation is applied before forecasting and inverted after.
 
   Returns:
-    an object that maps to an R object of class 'forecast'
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
   '''
   h = _get_horizon(x, h)
   level = converters.map_arg(level)
@@ -174,7 +183,8 @@ def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   a trend in the mean prediction, but by default, it does not.
   
   Args:
-    x: an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     h: default 10; the forecast horizon.
     drift: default False. If True, a random walk with drift model is fitted.
     level: A number or list/tuple of prediction interval confidence values.
@@ -184,7 +194,8 @@ def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
       transformation is applied before forecasting and inverted after.
 
   Returns:
-    an object that maps to an R object of class 'forecast'
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
   '''
   level = converters.map_arg(level)
   return forecast.rwf(x, h, drift, level=level, **{'lambda' : lam})
@@ -198,7 +209,8 @@ def forecast_ts(x, h=None, **kwargs):
   above 13.
   
   Args:
-    x: an R time series
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     h: the forecast horizon
     level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
@@ -214,7 +226,8 @@ def forecast_ts(x, h=None, **kwargs):
       explosively.
         
   Returns:
-    an object that maps to an R object of class 'forecast'
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
   '''
   h = _get_horizon(x, h)
   kwargs = converters.translate_kwargs(**kwargs)
@@ -232,7 +245,8 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
   and use it to produce a forecast over the given horizon.
   
   Args:
-    x:  an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     h:  Forecast horizon; default is 2 full periods of a periodic series,
         or 10 steps for non-seasonal series.
     model_spec : Default is 'ZZZ'. A 3-letter string denoting the model type.
@@ -270,7 +284,8 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
 
         
   Returns:
-    an object that maps to an R object of class 'forecast'
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
   '''
   kwargs = {'allow.multiplicative.trend' : allow_multiplicative_trend, 
             'additive.only' : additive_only, 
@@ -296,7 +311,8 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
   generate a forecast.
   
   Args:
-    x : an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     h : Forecast horizon; default is 2 full periods of a periodic series,
         or 10 steps for non-seasonal series.
     d : order of first differencing. Default is NA, which selects this 
@@ -333,7 +349,8 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
       Default is 80% and 95% intervals.
       
   Returns:
-    an object that maps to an R object of class 'forecast'
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
   '''
   kwargs = {'max.p' : max_p, 'max.q' : max_q, 'max.P' : max_P, 
             'max.Q' : max_Q, 'max.order' : max_order, 'max.d' : max_d, 
@@ -359,7 +376,8 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
   component on to the forecast.
   
   Args:
-    x : an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
       For this forecast method, x should be seasonal.
     h : Forecast horizon; default is 2 full periods of a periodic series
     s.window : either 'periodic' or the span (in lags) of the 
@@ -385,7 +403,8 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
       Default is 80% and 95% intervals.
       
   Returns:
-    an object that maps to an R object of class 'forecast'
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
   '''
   h = _get_horizon(x, h)
   kwargs = {'s.window' : s_window,
@@ -404,7 +423,8 @@ def stl(x, s_window, **kwargs):
   only the mandatory s_window paramter has to be set.
   
   Args:
-    x : a seasonal R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     s_window : either 'periodic' or the span (in lags) of the 
       loess window for seasonal extraction, which should be odd.
       This has no default.
@@ -430,7 +450,8 @@ def stl(x, s_window, **kwargs):
       an R function, obtained from rpy2.
       
   Returns:
-    an object that maps to an R STL decomposition (class 'stl')
+    If x is an R ts object, an R object of class 'stl' is returned. 
+    If x is a Pandas Series, a Pandas Data Frame is returned.
   '''
   kwargs['s.window'] = s_window
   kwargs = converters.translate_kwargs(**kwargs)
@@ -444,14 +465,15 @@ def decompose(x, type='additive'):
   season, trend and remainder components.
   
   Args:
-    x: an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
       The series should be seasonal.
     type: Type of seasonal decomposition to perform.
       Default is 'additive', other option is 'multiplicative'.
       
   Returns:
-    a seasonal decomposition of the time series x, contained in an 
-    object that maps to an R object of class 'decomposed.ts'.
+    If x is an R ts object, an R object of class 'decomposed.ts' is returned. 
+    If x is a Pandas Series, a Pandas Data Frame is returned.
   '''
   return stats.decompose(x, type=type)
 
@@ -462,7 +484,7 @@ def seasadj(decomp):
   was seasonally decomposed to get decomp.
   
   Args:
-    decomp: a seasonal decomposition from stl or decompose
+    decomp: an R seasonal decomposition from stl or decompose
     
   Returns:
     an object that maps an R time series of the seasonally adjusted
@@ -477,7 +499,7 @@ def sindexf(decomp, h):
   forward by h time steps into the future.
   
   Args:
-    decomp: a seasonal decomposition from stl or decompose
+    decomp: an R seasonal decomposition from stl or decompose
     h: a forecast horizon
     
   Returns:
@@ -497,11 +519,13 @@ def BoxCox(x, lam):
   For x = 0, it is log(x).
   
   Args:
-    x: an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     lam: BoxCox transformation parameter. 
       
   Returns:
-    an object that maps to an R time series containing x, tranformed
+    If x is an R ts object, an R time series is returned. 
+    If x is a Pandas Series, a Pandas Series is returned.
   '''
   return forecast.BoxCox(x, **{'lambda' : lam})
   
@@ -509,15 +533,19 @@ def BoxCox(x, lam):
 @wrap_series
 def InvBoxCox(x, lam):
   '''
-  Invert a BoxCox transformation.
+  Invert a BoxCox transformation. The return value is a timeseries with 
+  values of x transformed back to the original scale
   
   Args:
-    x: an R time series, with values that are on the scale of a BoxCox
-      transformation with parameter lambda=lam
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
+      Its values that should be on the scale of a BoxCox transformation 
+      with parameter lambda=lam.
     lam: BoxCox transformation parameter. 
       
   Returns:
-    an R timeseries with values of x transformed back to the original scale
+    If x is an R ts object, an R time series is returned. 
+    If x is a Pandas Series, a Pandas Series is returned.
   '''
   return forecast.InvBoxCox(x, **{'lambda' : lam})
   
@@ -528,7 +556,8 @@ def BoxCox_lambda(x, method='guerrero', lower=-1, upper=2):
   Function to find a good value of the BoxCox transformation parameter, lambda.
   
   Args:
-    x: an R time series, obtained from forecast_wrapper.ts()
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     method: Method of calculating lambda. 
       Default is 'guerrero', other option is 'lik' for log-likelihood.
     upper: Upper limit of possible lambda values, default 2.
@@ -548,14 +577,18 @@ def na_interp(x, lam=NULL):
   uses an STL decomposition, imputing the seasonal value.
   
   Args:
-    x: an R time series, with values that are on the scale of a BoxCox
-      transformation with parameter lambda=lam
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
+      If lam is used, its values should be on the scale of a BoxCox
+      transformation with parameter lambda=lam.
     lam: BoxCox transformation parameter. The default is R's NULL value.
       If NULL, no transformation is applied. Otherwise, a Box-Cox 
       transformation is applied before forecasting and inverted after.  
       
   Returns:
-    the time series x, with any NA values filled with imputed values
+    If x is an R ts object, an R time series is returned. 
+    If x is a Pandas Series, a Pandas Series is returned.
+    In either case, missing values are filled.
   '''
   return forecast.na_interp(x, **{'lambda' : lam})
 
@@ -586,13 +619,16 @@ def tsclean(x, **kwargs):
   an STL decomposition for seasonal series. Optionally fills missing values.
 
   Args:
-    x: an R time series
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
     replace_missing: Default True. 
       If True, use na_interp to fill missing values in x.
     lam: optional BoxCox transformation parameter.
     
   Returns:
-    x, with outliers replaced and optionally, missing values filled
+    If x is an R ts object, an R time series is returned. If x is a Pandas 
+    Series, a Pandas Series is returned. In either case, outliers are replaced 
+    and optionally, missing values are filled.
   '''
   kwargs = converters.translate_kwargs(**kwargs)
   return forecast.tsclean(x, **kwargs)

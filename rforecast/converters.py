@@ -6,7 +6,6 @@ as a Pandas Series with a MultiIndex in which the first level is the longer,
 outer time period and the second level is the cycle.
 '''
 import pandas
-import wrappers
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
 

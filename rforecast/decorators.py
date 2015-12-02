@@ -21,7 +21,7 @@ def wrap_input(func):
   function output as-is in either case.
   
   Args:
-    func: the wrapped function, must take ts or Pandas Series as first argument
+    func: the wrapped function, must take an R ts object as first argument
     
   Returns:
     A wrapper function for argument-conversion, to use as a decorator.
@@ -38,7 +38,7 @@ def wrap_series(func):
   is an R ts object, then the output is left alone.
   
   Args:
-    func: the wrapped function, must take ts or Pandas Series as first argument
+    func: the wrapped function, must take an R ts object as first argument
     
   Returns:
     A wrapper function for argument-conversion, to use as a decorator.
@@ -56,7 +56,7 @@ def wrap_forecast(func):
   If the input is an R ts, then the output (an R forecast) is unchanged.
   
   Args:
-    func: the wrapped function, must take ts or Pandas Series as first argument
+    func: the wrapped function, must take an R ts object as first argument
     
   Returns:
     A wrapper function for argument-conversion, to use as a decorator.
@@ -74,7 +74,7 @@ def wrap_decomp(func):
   If the input is an R ts, then the output is unchanged.
   
   Args:
-    func: the wrapped function, must take ts or Pandas Series as first argument
+    func: the wrapped function, must take an R ts object as first argument
     
   Returns:
     A wrapper function for argument-conversion, to use as a decorator.
@@ -90,7 +90,7 @@ def base_wrap(func, pandas_func):
   If the input is an R ts, then the output is unchanged.
   
   Args:
-    func: the wrapped function, must take ts or Pandas Series as first argument
+    func: the wrapped function, must take an R ts object as first argument
     pandas_func: the function to call to convert the output
     
   Returns:
@@ -111,8 +111,57 @@ def base_wrap(func, pandas_func):
   return inner
 
 
+# The input validation isn't really right here...Its too basic.
 
-    
+def decomp_in(func):
+  '''
+  Wrapper function to convert R objects of class 'stl' or 'decomposed.ts' to 
+  a Pandas Data Frame, if necessary. If a Data Frame is provided, it is 
+  passed through unchanged. The wrapped function that is returned has no 
+  return value, because this function is intended for plot functions.
+  
+  Args:
+    func: the wrapped function. Takes a Pandas Data Frame like the 
+      output from extractors.decomposition.
+
+  Returns:
+    A wrapper function for argument conversion, to use as a decorator.
+  '''
+  @functools.wraps(func)
+  def inner(*args, **kwargs):
+    if type(args[0]) is robjects.ListVector:
+      args = list(args)
+      args[0] = extractors.decomposition(args[0])
+    func(*args, **kwargs)
+  return inner
+
+
+def forecast_in(func):
+  '''
+  Wrapper function to convert an R forecast object into a Pandas Data Frame, 
+  with an added Pandas Series containing the data the forecast was generated 
+  from, if one is provided. If the Pandas objects are provided, then they are 
+  passed through unchanged.
+  
+  Args:
+    func: the wrapped function. Takes a Pandas Data Frame returned from 
+      extractors.prediction_interval for the first argument, and a Pandas 
+      Series with the forecast data as the second.
+      
+  Returns:
+    A wrapper function for argument conversion, to use as a decorator.
+  '''
+  @functools.wraps(func)
+  def inner(*args, **kwargs):
+    if type(args[0]) is robjects.ListVector:
+      fc = args[0]
+      pi = extractors.prediction_intervals(fc)
+      x = extractors.ts_as_series(fc.rx2('x'))
+      args = (pi, x)
+    func(*args, **kwargs)
+  return inner
+
+
 
 
 

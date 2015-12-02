@@ -6,8 +6,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from rpy2 import robjects
 import extractors
+from decorators import decomp_in, forecast_in, wrap_input
 
 
+@wrap_input
 def plot_ts(ts, **kwargs):
   '''
   Plots an R time series using matplotlib/pyplot/pandas.
@@ -25,13 +27,15 @@ def plot_ts(ts, **kwargs):
   plt.style.use('ggplot')
   plt.show()
   
-  
+
+@decomp_in
 def plot_decomp(decomp, **kwargs):
   '''
   Plots a seasonal decomposition using matplotlib/pyplot/pandas.
   
   Args:
-    decomp: an object that maps to a seasonal decomposition in R.
+    decomp: either an R decomposition (class 'stl' or 'decomposed.ts') or 
+      a Pandas Data Frame from extractors.decomposition.
     kwargs: keyword arguments passed through a pandas DataFrame
       and on to pyplot.plot().
       
@@ -39,48 +43,42 @@ def plot_decomp(decomp, **kwargs):
     a plot of the seasonal, trend and remainder components from the 
     decomposition plus the original time series data
   '''
-  dcdf = extractors.decomposition(decomp)
-  dcdf.plot(subplots=True, **kwargs)
+  decomp.plot(subplots=True, **kwargs)
   plt.style.use('ggplot')
   plt.show()
 
 
-def plot_forecast(fc, test=None, loc='upper left'):
+@forecast_in
+def plot_forecast(fc, data, test=None, loc='upper left'):
   '''
   Plots a forecast and its prediction intervals.
   
   Args:
-    fc: an object that maps to an R forecast
-    test: Optional ground truth for the forecast period
+    fc: Pandas Data Frame from extractors.prediction_intervals,
+      or an R forecast object
+    data: the data for the forecast period as a Pandas Series
+    test: optional data for the forecast period as a Pandas Series
     loc: Default is 'upper left', since plots often go up and right.
       For other values see matplotlib.pyplot.legend().
-
+      
   Output:
     a plot of the series, the mean forecast, and the prediciton intervals
   '''
   plt.style.use('ggplot')
-  data = fc.rx2('x')
-  data_idx = list(robjects.r('time')(data))
-  plt.plot(data_idx, list(data), color='black')
-  mean_fc = fc.rx2('mean')
-  fc_idx = list(robjects.r('time')(mean_fc))
-  plt.plot(fc_idx, list(mean_fc), color='blue')
-  lower = fc.rx2('lower')
-  upper = fc.rx2('upper')
-  for (k, level) in enumerate(fc.rx2('level'), 1):
-    lower_series = list(lower.rx(True, k))
-    upper_series = list(upper.rx(True, k))
-    plt.fill_between(fc_idx, lower_series, upper_series, 
-                     color='grey', alpha= 0.5/k)
+  l = list(fc.columns)
+  lowers = l[1::2]
+  uppers = l[2::2]
+  plt.plot(data.index, data, color='black')
+  plt.plot(fc.index, fc[l[0]], color='blue')
+  for (k, (low, up)) in enumerate(zip(lowers, uppers), 1):
+    plt.fill_between(fc.index, fc[low], fc[up], color='grey', alpha=0.5/k)
   labels = ['data', 'forecast']
   if test is not None:
-    n = min(len(fc_idx), len(test))
-    plt.plot(fc_idx[:n], list(test[:n]), color='green')
+    n = min(len(fc.index), len(test))
+    plt.plot(fc.index[:n], list(test[:n]), color='green')
     labels.append('test')
   plt.legend(labels, loc=loc)
-  plt.show()
-
-
+  plt.show()    
 
 
 

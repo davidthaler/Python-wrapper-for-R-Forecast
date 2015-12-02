@@ -100,5 +100,24 @@ class WrappersTestCase(unittest.TestCase):
       return False
 
 
+  def test_box_cox(self):
+    bc = wrappers.BoxCox(self.oil, 0.5)
+    bc1 = wrappers.BoxCox(self.oil, 1)
+    bc0 = wrappers.BoxCox(self.oil, 0)
+    self.assertAlmostEqual(self.oil[0], bc1[0] + 1, places=4)
+    self.assertAlmostEqual(numpy.log(self.oil[0]), bc0[0], places=4)
+    self.assertAlmostEqual(bc[0], 19.07217, places=4)
+    inv_bc = wrappers.InvBoxCox(bc, 0.5)
+    self.assertAlmostEqual(inv_bc[0], self.oil[0], places=4)
+
+
+
+
+
+
+
+
+
+
 
 

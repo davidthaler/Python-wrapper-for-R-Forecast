@@ -1,8 +1,10 @@
 import unittest
+from rforecast import wrappers
 from rforecast import converters
 from rpy2 import robjects
 from rpy2.robjects.packages import importr
 import pandas
+import numpy
 
 
 class ConvertersTestCase(unittest.TestCase):
@@ -15,6 +17,9 @@ class ConvertersTestCase(unittest.TestCase):
     self.fc_aus = wrappers.ets(self.aus_ts)
     self.oil = list(robjects.r('oil'))
     self.aus = list(robjects.r('austourists'))
+    self.data = [0.74, 0.42, 0.22, 0.04, 0.17, 0.37, 
+                 0.53, 0.32, 0.82, 0.81, 0.11, 0.79]
+    self.npdata = numpy.array(self.data)
 
 
   def test_translate_kwargs(self):
@@ -71,6 +76,57 @@ class ConvertersTestCase(unittest.TestCase):
     self.assertAlmostEqual(tsp[0], 1999, places=2)
     self.assertAlmostEqual(tsp[1], 2010.75, places=2)
     self.assertAlmostEqual(tsp[2], 4, places=1)
+
+
+# Function matrix moved in from wrappers.py
+
+
+  def test_matrix_list(self):
+    # converters.matrix turns a list into a column matrix
+    mat = converters.matrix(self.data)
+    self.assertTrue(type(mat) is robjects.Matrix)
+    self.assertListEqual(list(mat), self.data)
+    self.assertTrue(self._check_dim(mat, 12, 1))
+
+
+  def test_matrix_array(self):
+    data = numpy.array(self.data)
+    mat = converters.matrix(data)
+    self.assertTrue(type(mat) is robjects.Matrix)
+    self.assertListEqual(list(mat), self.data)
+    self.assertTrue(self._check_dim(mat, 12, 1))
+    
+    # test 2D numpy array
+    data = data.reshape((4, 3))
+    mat = converters.matrix(data)
+    self.assertTrue(self._check_dim(mat, 4, 3))
+
+
+  def test_matrix_series(self):
+    # converters.matrix turns a Pandas Series into a column matrix
+    s = pandas.Series(self.data)
+    mat = converters.matrix(s)
+    self.assertTrue(type(mat) is robjects.Matrix)
+    self.assertListEqual(list(mat), self.data)
+    self.assertTrue(self._check_dim(mat, 12, 1))
+
+
+  def test_matrix_data_frame(self):
+    data = self.npdata.reshape((4, 3))
+    df = pandas.DataFrame(data)
+    mat = converters.matrix(df)
+    self.assertTrue(self._check_dim(mat, 4, 3))
+    self.assertTrue( (numpy.array(mat) == df.values).all() )
+    
+
+  def _check_dim(self, mat, nrows, ncols):
+    n = nrows * ncols
+    r, c = robjects.r('dim')(mat)
+    if len(mat) == n and r == nrows and c == ncols:
+      return True
+    else:
+      return False
+
 
 # Functions moved in from extractors.py
 

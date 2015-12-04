@@ -7,7 +7,6 @@ from rpy2.robjects.packages import importr
 import numpy
 import pandas
 import converters
-from decorators import wrap_forecast, wrap_decomp, wrap_series, wrap_input
 
 
 forecast = importr('forecast')
@@ -16,7 +15,6 @@ NULL = robjects.NULL
 NA = robjects.NA_Real
 
 
-@wrap_input
 def frequency(x):
   '''
   Function returns the frequency attribute of an R time series. 
@@ -29,6 +27,7 @@ def frequency(x):
   Returns:
     The number of data points per period in x, as a single float
   '''
+  x, _ = converters.to_ts(x)
   return stats.frequency(x)[0]
   
 
@@ -51,7 +50,6 @@ def _get_horizon(x, h=None):
     return 10
 
 
-@wrap_forecast
 def meanf(x, h=10, level=(80,95), lam=NULL):
   '''
   Perform a mean forecast on the provided data by calling meanf() 
@@ -71,11 +69,12 @@ def meanf(x, h=10, level=(80,95), lam=NULL):
     If x is an R ts object, an R forecast is returned. If x is a Pandas 
     Series, a Pandas Data Frame is returned.
   '''
+  x, is_pandas = converters.to_ts(x)
   level = converters.map_arg(level)
-  return forecast.meanf(x, h, level=level, **{'lambda' : lam})
+  out = forecast.meanf(x, h, level=level, **{'lambda' : lam})
+  return converters.forecast_out(out, is_pandas)
   
 
-@wrap_forecast
 def thetaf(x, h=10, level=(80, 95)):
   '''
   Perform a theta forecast on the provided data by calling thetaf() 
@@ -95,11 +94,12 @@ def thetaf(x, h=10, level=(80, 95)):
     If x is an R ts object, an R forecast is returned. If x is a Pandas 
     Series, a Pandas Data Frame is returned.
   '''
+  x, is_pandas = converters.to_ts(x)
   level = converters.map_arg(level)
-  return forecast.thetaf(x, h, level=level)
+  out = forecast.thetaf(x, h, level=level)
+  return converters.forecast_out(out, is_pandas)
 
 
-@wrap_forecast
 def naive(x, h=10, level=(80, 95), lam=NULL):
   '''
   Perform a naive forecast on the provided data by calling naive() 
@@ -120,11 +120,12 @@ def naive(x, h=10, level=(80, 95), lam=NULL):
     If x is an R ts object, an R forecast is returned. If x is a Pandas 
     Series, a Pandas Data Frame is returned.
   '''
+  x, is_pandas = converters.to_ts(x)
   level = converters.map_arg(level)
-  return forecast.naive(x, h, level=level, **{'lambda' : lam})
+  out = forecast.naive(x, h, level=level, **{'lambda' : lam})
+  return converters.forecast_out(out, is_pandas)
+  
 
-
-@wrap_forecast
 def snaive(x, h=None, level=(80, 95), lam=NULL):
   '''
   Perform a seasonal naive forecast on the provided data by calling 
@@ -147,12 +148,13 @@ def snaive(x, h=None, level=(80, 95), lam=NULL):
     If x is an R ts object, an R forecast is returned. If x is a Pandas 
     Series, a Pandas Data Frame is returned.
   '''
+  x, is_pandas = converters.to_ts(x)
   h = _get_horizon(x, h)
   level = converters.map_arg(level)
-  return forecast.snaive(x, h, level=level, **{'lambda' : lam})
+  out = forecast.snaive(x, h, level=level, **{'lambda' : lam})
+  return converters.forecast_out(out, is_pandas)
+  
 
-
-@wrap_forecast
 def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   '''
   Perform a random walk forecast on the provided data by calling 
@@ -174,11 +176,12 @@ def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
     If x is an R ts object, an R forecast is returned. If x is a Pandas 
     Series, a Pandas Data Frame is returned.
   '''
+  x, is_pandas = converters.to_ts(x)
   level = converters.map_arg(level)
-  return forecast.rwf(x, h, drift, level=level, **{'lambda' : lam})
+  out = forecast.rwf(x, h, drift, level=level, **{'lambda' : lam})
+  return converters.forecast_out(out, is_pandas)
 
 
-@wrap_forecast
 def forecast_ts(x, h=None, **kwargs):
   '''
   Generate a forecast for the time series x, using ets if x is non-seasonal 
@@ -206,12 +209,13 @@ def forecast_ts(x, h=None, **kwargs):
     If x is an R ts object, an R forecast is returned. If x is a Pandas 
     Series, a Pandas Data Frame is returned.
   '''
+  x, is_pandas = converters.to_ts(x)
   h = _get_horizon(x, h)
   kwargs = converters.translate_kwargs(**kwargs)
-  return forecast.forecast(x, h=h, **kwargs)
+  out = forecast.forecast(x, h=h, **kwargs)
+  return converters.forecast_out(out, is_pandas)
 
 
-@wrap_forecast
 def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL, 
         beta=NULL, gamma=NULL, phi=NULL, additive_only=False, lam=NULL,
         opt_crit='lik', nmse=3, ic='aicc', allow_multiplicative_trend=False,
@@ -264,6 +268,7 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
     If x is an R ts object, an R forecast is returned. If x is a Pandas 
     Series, a Pandas Data Frame is returned.
   '''
+  x, is_pandas = converters.to_ts(x)
   kwargs = {'allow.multiplicative.trend' : allow_multiplicative_trend, 
             'additive.only' : additive_only, 
             'opt.crit' : opt_crit,
@@ -273,10 +278,10 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
   h = _get_horizon(x, h)
   level = converters.map_arg(level)
   # NB: default lambda is correct - it will be taken from model
-  return forecast.forecast_ets(ets_model, h, level=level)
+  out = forecast.forecast_ets(ets_model, h, level=level)
+  return converters.forecast_out(out, is_pandas)
+  
 
-
-@wrap_forecast
 def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
                max_order=5, max_d=2, max_D=1, start_p=2, start_q=2, 
                start_P=1, start_Q=1, stationary=False, seasonal=True, 
@@ -329,6 +334,7 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
     If x is an R ts object, an R forecast is returned. If x is a Pandas 
     Series, a Pandas Data Frame is returned.
   '''
+  x, is_pandas = converters.to_ts(x)
   kwargs = {'max.p' : max_p, 'max.q' : max_q, 'max.P' : max_P, 
             'max.Q' : max_Q, 'max.order' : max_order, 'max.d' : max_d, 
             'max.D' : max_D, 'start.p' : start_p, 'start.q' : start_q, 
@@ -340,10 +346,10 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
   h = _get_horizon(x, h)
   level = converters.map_arg(level)
   # NB: default lambda is correct - it will be taken from model
-  return forecast.forecast_Arima(arima_model, h, level=level, xreg=newxreg)
+  out = forecast.forecast_Arima(arima_model, h, level=level, xreg=newxreg)
+  return converters.forecast_out(out, is_pandas)
 
 
-@wrap_forecast
 def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets', 
          etsmodel='ZZZ', xreg=NULL, newxreg=NULL, level=(80, 95)):
   '''
@@ -383,15 +389,16 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
     If x is an R ts object, an R forecast is returned. If x is a Pandas 
     Series, a Pandas Data Frame is returned.
   '''
+  x, is_pandas = converters.to_ts(x)
   h = _get_horizon(x, h)
   kwargs = {'s.window' : s_window,
             'lambda' : lam}
   level = converters.map_arg(level)
-  return forecast.stlf(x, h, level=level, robust=robust, method=method, 
+  out = forecast.stlf(x, h, level=level, robust=robust, method=method, 
                        etsmodel=etsmodel, xreg=xreg, newxreg=newxreg, **kwargs)
+  return converters.forecast_out(out, is_pandas)
 
 
-@wrap_decomp
 def stl(x, s_window, **kwargs):
   '''
   Perform a decomposition of the time series x into seasonal, trend and 
@@ -430,12 +437,13 @@ def stl(x, s_window, **kwargs):
     If x is an R ts object, an R object of class 'stl' is returned. 
     If x is a Pandas Series, a Pandas Data Frame is returned.
   '''
+  x, is_pandas = converters.to_ts(x)
   kwargs['s.window'] = s_window
   kwargs = converters.translate_kwargs(**kwargs)
-  return stats.stl(x, **kwargs)
-  
+  out = stats.stl(x, **kwargs)
+  return converters.decomposition_out(out, is_pandas)
 
-@wrap_decomp
+
 def decompose(x, type='additive'):
   '''
   Performs a classical seasonal decomposition of a time series into 
@@ -452,7 +460,9 @@ def decompose(x, type='additive'):
     If x is an R ts object, an R object of class 'decomposed.ts' is returned. 
     If x is a Pandas Series, a Pandas Data Frame is returned.
   '''
-  return stats.decompose(x, type=type)
+  x, is_pandas = converters.to_ts(x)
+  out = stats.decompose(x, type=type)
+  return converters.decomposition_out(out, is_pandas)
 
   
 def seasadj(decomp):
@@ -486,7 +496,6 @@ def sindexf(decomp, h):
   return forecast.sindexf(x, h)
   
 
-@wrap_series
 def BoxCox(x, lam):
   '''
   Applies a Box-Cox transformation to the data in x. This can stabilize the 
@@ -504,10 +513,11 @@ def BoxCox(x, lam):
     If x is an R ts object, an R time series is returned. 
     If x is a Pandas Series, a Pandas Series is returned.
   '''
-  return forecast.BoxCox(x, **{'lambda' : lam})
+  x, is_pandas = converters.to_ts(x)
+  out = forecast.BoxCox(x, **{'lambda' : lam})
+  return converters.series_out(out, is_pandas)
   
 
-@wrap_series
 def InvBoxCox(x, lam):
   '''
   Invert a BoxCox transformation. The return value is a timeseries with 
@@ -524,10 +534,11 @@ def InvBoxCox(x, lam):
     If x is an R ts object, an R time series is returned. 
     If x is a Pandas Series, a Pandas Series is returned.
   '''
-  return forecast.InvBoxCox(x, **{'lambda' : lam})
+  x, is_pandas = converters.to_ts(x)
+  out = forecast.InvBoxCox(x, **{'lambda' : lam})
+  return converters.series_out(out, is_pandas)
   
 
-@wrap_input
 def BoxCox_lambda(x, method='guerrero', lower=-1, upper=2):
   '''
   Function to find a good value of the BoxCox transformation parameter, lambda.
@@ -543,10 +554,10 @@ def BoxCox_lambda(x, method='guerrero', lower=-1, upper=2):
   Returns:
     value of lambda for the series x, as calculated by the selected method
   '''
+  x, _ = converters.to_ts(x)
   return forecast.BoxCox_lambda(x, method=method, lower=lower, upper=upper)[0]
 
 
-@wrap_series
 def na_interp(x, lam=NULL):
   '''
   Funtction for interpolating missing values in R time series. This function 
@@ -567,8 +578,10 @@ def na_interp(x, lam=NULL):
     If x is a Pandas Series, a Pandas Series is returned.
     In either case, missing values are filled.
   '''
-  return forecast.na_interp(x, **{'lambda' : lam})
-
+  x, is_pandas = converters.to_ts(x)
+  out = forecast.na_interp(x, **{'lambda' : lam})
+  return converters.series_out(out, is_pandas)
+  
 
 def accuracy(fc, x=None, **kwargs):
   '''
@@ -589,7 +602,6 @@ def accuracy(fc, x=None, **kwargs):
   return forecast.accuracy(fc, **kwargs)
 
 
-@wrap_series
 def tsclean(x, **kwargs):
   '''
   Identify and replace outliers. Uses loess for non-seasonal series and 
@@ -607,8 +619,10 @@ def tsclean(x, **kwargs):
     Series, a Pandas Series is returned. In either case, outliers are replaced 
     and optionally, missing values are filled.
   '''
+  x, is_pandas = converters.to_ts(x)
   kwargs = converters.translate_kwargs(**kwargs)
-  return forecast.tsclean(x, **kwargs)
+  out = forecast.tsclean(x, **kwargs)
+  return converters.series_out(out, is_pandas)
 
 
 

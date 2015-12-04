@@ -6,10 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from rpy2 import robjects
 import converters
-from decorators import decomp_in, forecast_in, wrap_input
 
 
-@wrap_input
 def plot_ts(ts, **kwargs):
   '''
   Plots an R time series using matplotlib/pyplot/pandas.
@@ -22,13 +20,12 @@ def plot_ts(ts, **kwargs):
   Output:
     a time series plot
   '''
-  s = converters.ts_as_series(ts)
+  s = converters.to_series(ts)
   s.plot(**kwargs)
   plt.style.use('ggplot')
   plt.show()
   
 
-@decomp_in
 def plot_decomp(decomp, **kwargs):
   '''
   Plots a seasonal decomposition using matplotlib/pyplot/pandas.
@@ -43,27 +40,30 @@ def plot_decomp(decomp, **kwargs):
     a plot of the seasonal, trend and remainder components from the 
     decomposition plus the original time series data
   '''
+  decomp = converters.to_decomp(decomp)
   decomp.plot(subplots=True, **kwargs)
   plt.style.use('ggplot')
   plt.show()
 
 
-@forecast_in
-def plot_forecast(fc, data, test=None, loc='upper left'):
+def plot_forecast(fc, data=None, test=None, loc='upper left'):
   '''
   Plots a forecast and its prediction intervals.
   
   Args:
     fc: Pandas Data Frame from converters.prediction_intervals,
       or an R forecast object
-    data: the data for the forecast period as a Pandas Series
+    data: the data for the forecast period as a Pandas Series, or None 
+      if fc is an R forecast
     test: optional data for the forecast period as a Pandas Series
     loc: Default is 'upper left', since plots often go up and right.
       For other values see matplotlib.pyplot.legend().
       
   Output:
-    a plot of the series, the mean forecast, and the prediciton intervals
+    a plot of the series, the mean forecast, and the prediciton intervals, 
+    and optionally, the data for the forecast period, if provided,
   '''
+  fc, data, test = converters.to_forecast(fc, data, test)
   plt.style.use('ggplot')
   l = list(fc.columns)
   lowers = l[1::2]

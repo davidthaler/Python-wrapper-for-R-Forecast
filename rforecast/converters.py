@@ -14,7 +14,64 @@ from math import floor
 
 stats = importr('stats')
 
+
+# TODO: input validation isn't really right here
+
+
+def to_ts(x):
+  if type(x) is pandas.Series:
+    return series_as_ts(x), True
+  else:
+    return x, False
   
+  
+def series_out(x, is_pandas):
+  if is_pandas:
+    return ts_as_series(x)
+  else:
+    return x
+    
+    
+def forecast_out(fc, is_pandas):
+  if is_pandas:
+    return prediction_intervals(fc)
+  else:
+    return fc
+    
+    
+def decomposition_out(dc, is_pandas):
+  if is_pandas:
+    return decomposition(dc)
+  else: 
+    return dc
+
+
+def to_series(x):
+  if type(x) is pandas.Series:
+    return x
+  else:
+    return ts_as_series(x)
+
+
+def to_decomp(dc):
+  if type(dc) is pandas.DataFrame:
+    return dc
+  else:
+    return decomposition(dc)
+    
+def to_forecast(fc, data, test):
+  if test is not None:
+    test = to_series(test)
+  if type(fc) is pandas.DataFrame:
+    if type(data) is not pandas.Series:
+      raise ValueError(
+        'If forecast is Pandas Data Frame, data must be Pandas Series')
+    return fc, data, test
+  else:
+    pi = prediction_intervals(fc)
+    x = ts_as_series(fc.rx2('x'))
+    return pi, x, test
+
 def matrix(x):
   '''
   Converts Python data to an R matrix. This function converts lists, 1-D 

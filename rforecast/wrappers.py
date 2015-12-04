@@ -585,10 +585,24 @@ def na_interp(x, lam=NULL):
 
 def accuracy(fc, x=None, **kwargs):
   '''
-  # TODO: narrative doc
+  Computes an R matrix of forecast accuracy measures. Must take an R forecast 
+  object for input, since the residuals are not included in the Pandas 
+  output from forecast functions.  One step-ahead errors are computed over the 
+  training data. Optionally, test data (x) can be included, in which case the 
+  error measures are evaluated over the test set.
+  
+  The accuracy measures used are:
+    * Mean Error (ME)
+    * Root Mean Squared Error (RMSE)
+    * Mean Absolute Error (MAE)
+    * Mean Percentage Error (MPE)
+    * Mean Absolute Percentage Error (MAPE)
+    * Mean Absolute Scaled Error (MASE)
+    * Autocorrelatino of Errors at Lag 1 (ACF1)
+    * Theil's U (only if x provided)
   
   Args:
-    fc: an R forecast object, or an R vector containing forecasts
+    fc: an R forecast object
     x: optional R vector of true values for the forecast (test data)
     d: Number of first differences taken in forecast, default is none.
     D: Number of seasonal differences taken in forecast, default is none.

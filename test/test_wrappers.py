@@ -1,7 +1,6 @@
 import unittest
 from rforecast import wrappers
 from rforecast import converters
-from rforecast import extractors
 import rpy2
 from rpy2 import robjects
 from rpy2.robjects.packages import importr
@@ -63,7 +62,7 @@ class WrappersTestCase(unittest.TestCase):
     self.assertAlmostEqual(inv_bc[0], self.oil[0], places=4)
 
   def test_tsclean(self):
-    clean_gold = wrappers.tsclean(extractors.ts_as_series(self.gold))
+    clean_gold = wrappers.tsclean(converters.ts_as_series(self.gold))
     self.assertFalse(clean_gold.isnull().any())
     self.assertAlmostEqual(clean_gold[56], 309.875, places=3)
     self.assertAlmostEqual(clean_gold[419], 373.975, places=3)

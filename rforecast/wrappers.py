@@ -31,29 +31,6 @@ def frequency(x):
   '''
   return stats.frequency(x)[0]
   
-  
-def matrix(x):
-  '''
-  Converts Python data to an R matrix. This function converts lists, 1-D 
-  numpy arrays and Pandas Series to a 1-column matrix. Pandas DataFrames 
-  and numpy 2-D arrays are converted to an R matrix with the same shape.
-  Forecast methods that allow regressors, like Arima or auto.arima, 
-  take them as an R matrix. 
-  
-  Args:
-    x: a list, numpy ndarray (1-D or 2-D), Pandas Series or DataFrame
-    
-  Returns:
-    an R matrix containing x
-  '''
-  nrow = len(x)
-  if type(x) is pandas.DataFrame:
-    x = x.values.ravel()
-  if type(x) is numpy.ndarray:
-    x = x.ravel()
-  rdata = robjects.FloatVector(x)
-  return robjects.r.matrix(rdata, byrow=True, nrow=nrow)
-  
 
 def _get_horizon(x, h=None):
   '''

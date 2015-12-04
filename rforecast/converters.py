@@ -5,6 +5,7 @@ with the correct index types. Seasonal time series are represented
 as a Pandas Series with a MultiIndex in which the first level is the longer, 
 outer time period and the second level is the cycle.
 '''
+import numpy
 import pandas
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
@@ -13,7 +14,30 @@ from math import floor
 
 stats = importr('stats')
 
-
+  
+def matrix(x):
+  '''
+  Converts Python data to an R matrix. This function converts lists, 1-D 
+  numpy arrays and Pandas Series to a 1-column matrix. Pandas DataFrames 
+  and numpy 2-D arrays are converted to an R matrix with the same shape.
+  Forecast methods that allow regressors, like Arima or auto.arima, 
+  take them as an R matrix. 
+  
+  Args:
+    x: a list, numpy ndarray (1-D or 2-D), Pandas Series or DataFrame
+    
+  Returns:
+    an R matrix containing x
+  '''
+  nrow = len(x)
+  if type(x) is pandas.DataFrame:
+    x = x.values.ravel()
+  if type(x) is numpy.ndarray:
+    x = x.ravel()
+  rdata = robjects.FloatVector(x)
+  return robjects.r.matrix(rdata, byrow=True, nrow=nrow)
+  
+  
 def map_arg(x):
   '''
   Many arguments in R may be either numbers or vectors. Rpy2 translates 
@@ -122,7 +146,7 @@ def ts_as_series(ts):
     a Pandas Series with the same data and index as ts
   '''
   idx = _get_index(ts)
-  return pd.Series(ts, index=idx)
+  return pandas.Series(ts, index=idx)
 
 
   
@@ -226,7 +250,7 @@ def prediction_intervals(fc):
     raise ValueError('Argument must map to an R forecast.')
   mean_fc = list(fc.rx2('mean'))
   idx = _get_index(fc.rx2('mean'))
-  df = pd.DataFrame({'point_fc' : mean_fc}, index=idx)
+  df = pandas.DataFrame({'point_fc' : mean_fc}, index=idx)
   colnames = ['point_fc']
   lower = fc.rx2('lower')
   upper = fc.rx2('upper')
@@ -251,13 +275,13 @@ def accuracy(acc):
   Returns:
     Pandas DataFrame with accuracy measures
   '''
-  index = pd.Index(list(acc.colnames))
+  index = pandas.Index(list(acc.colnames))
   if acc.dim[0] == 2:
     data = {'Train' : list(acc)[::2]}
     data['Test'] = list(acc)[1::2]
   else:
     data = {'Train' : list(acc)}
-  return pd.DataFrame(data=data, index=index)
+  return pandas.DataFrame(data=data, index=index)
 
 
 def decomposition(decomp):
@@ -281,7 +305,7 @@ def decomposition(decomp):
     remainder = list(data.rx(True, 3))
     cols = ['seasonal', 'trend', 'remainder']
     idx = _get_index(data)
-    df = pd.DataFrame(dict(zip(cols, (seasonal, trend, remainder))), index=idx)
+    df = pandas.DataFrame(dict(zip(cols, (seasonal, trend, remainder))), index=idx)
     df['data'] = df.sum(axis=1)
     return df[['data', 'seasonal', 'trend', 'remainder']]
   elif cls(decomp)[0] == 'decomposed.ts':
@@ -291,7 +315,7 @@ def decomposition(decomp):
     remainder = list(decomp.rx2('random'))
     cols = ['data', 'seasonal', 'trend', 'remainder']
     idx = _get_index(decomp.rx2('x'))
-    df = pd.DataFrame(dict(zip(cols, (x, seasonal, trend, remainder))), index=idx)
+    df = pandas.DataFrame(dict(zip(cols, (x, seasonal, trend, remainder))), index=idx)
     return df[cols]
   else:
     raise ValueError('Argument must map to an R seasonal decomposition.')

@@ -3,8 +3,6 @@ The plots module contains functions for producing plots using matplotlib
 of time series, forecast results and seasonal decompositions.
 '''
 import matplotlib.pyplot as plt
-import pandas as pd
-from rpy2 import robjects
 import converters
 
 

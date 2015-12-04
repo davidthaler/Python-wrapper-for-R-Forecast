@@ -19,6 +19,18 @@ stats = importr('stats')
 
 
 def to_ts(x):
+  '''
+  Takes in a time series as either a Pandas Series or an R time series. 
+  Returns the series as an R time series, along with a flag that is True 
+  if the input was a Pandas Series and false if it was an R time series.
+  
+  Args:
+    x: an R time series or Pandas Series
+    
+  Returns:
+    2-tuple of x, as an R time series, and True/False, with true if 
+    input was a Pandas Series
+  '''
   if type(x) is pandas.Series:
     return series_as_ts(x), True
   else:
@@ -26,6 +38,17 @@ def to_ts(x):
   
   
 def series_out(x, is_pandas):
+  '''
+  Accepts an R time series and returns the input as-is if is_pandas is False, 
+  or else a Pandas Series with the same data as the input.
+  
+  Args:
+    x: an R time series
+    is_pandas: True if the output should be a Pandas Series, False otherwise
+    
+  Returns:
+    either and R time series or a Pandas Series containing the data in x
+  '''
   if is_pandas:
     return ts_as_series(x)
   else:
@@ -33,6 +56,19 @@ def series_out(x, is_pandas):
     
     
 def forecast_out(fc, is_pandas):
+  '''
+  Accepts an R forecast object and returns either the object as-is, 
+  or a Pandas Data Frame extracted from the object.
+  
+  Args:
+    fc: an R forecast object
+    is_pandas: True if the output should be a Pandas Data Frame, 
+      if False, return fc as-is
+      
+  Returns:
+    either an R forecast object or a Pandas Data Frame containing the 
+    prediction intervals and mean prediction from fc
+  '''
   if is_pandas:
     return prediction_intervals(fc)
   else:
@@ -40,6 +76,18 @@ def forecast_out(fc, is_pandas):
     
     
 def decomposition_out(dc, is_pandas):
+  '''
+  Accepts an R decomposition and returns either the object, or a Pandas 
+  Data Frame extracted from the object.
+  
+  Args:
+    dc: an R decomposition (class 'stl' or decomposed.ts')
+    is_pandas: True if the output should be a Pandas Data Frame, 
+      if False, return dc as-is
+      
+  Returns:
+    either an R decomposition or a Pandas Data Frame with the same data
+  '''
   if is_pandas:
     return decomposition(dc)
   else: 
@@ -47,6 +95,16 @@ def decomposition_out(dc, is_pandas):
 
 
 def to_series(x):
+  '''
+  Accepts either an R time series or a Pandas Series. Returns a Pandas Series 
+  containing the data in the input.
+  
+  Args:
+    x: an R time series or a Pandas Series
+
+  Returns:
+    a Pandas Series with the data in x
+  '''
   if type(x) is pandas.Series:
     return x
   else:
@@ -54,12 +112,41 @@ def to_series(x):
 
 
 def to_decomp(dc):
+  '''
+  Accepts either an R decomposition or a Pandas Data Frame containing a 
+  decomposition. In either case, it returns a Pandas Data Frame.
+  
+  Args:
+    dc: an R decomposition or a Pandas Data Frame containing a decomposition
+    
+  Returns:
+    the decomposition in dc, as a Pandas Data Frame
+  '''
   if type(dc) is pandas.DataFrame:
     return dc
   else:
     return decomposition(dc)
     
+    
 def to_forecast(fc, data, test):
+  '''
+  Accepts a forecast either as an R forecast object, or as a Pandas Data Frame 
+  containing prediction intervals plus a Series with the original data. Data 
+  for the forecast period may be included. The output is a 3-tuple of Pandas 
+  objects (or optionally None for the test data) with the original data and 
+  prediction intervals.
+  
+  Args:
+    fc - an R forecast or Pandas Data Frame containing prediction intervals
+    data - Data for the forecast period. Ignored if fc is an R forecast, 
+      because the forecast contains this information already. If fc is a 
+      Pandas Data Frame, then data must be a Pandas Series.
+    test - optional data for the forecast period
+    
+  Returns:
+    prediction intervals, the original data, and optionally forecast period 
+    data, all as Pandas objects.
+  '''
   if test is not None:
     test = to_series(test)
   if type(fc) is pandas.DataFrame:
@@ -71,6 +158,7 @@ def to_forecast(fc, data, test):
     pi = prediction_intervals(fc)
     x = ts_as_series(fc.rx2('x'))
     return pi, x, test
+
 
 def matrix(x):
   '''

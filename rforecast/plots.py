@@ -5,7 +5,7 @@ of time series, forecast results and seasonal decompositions.
 import matplotlib.pyplot as plt
 import pandas as pd
 from rpy2 import robjects
-import extractors
+import converters
 from decorators import decomp_in, forecast_in, wrap_input
 
 
@@ -22,7 +22,7 @@ def plot_ts(ts, **kwargs):
   Output:
     a time series plot
   '''
-  s = extractors.ts_as_series(ts)
+  s = converters.ts_as_series(ts)
   s.plot(**kwargs)
   plt.style.use('ggplot')
   plt.show()
@@ -35,7 +35,7 @@ def plot_decomp(decomp, **kwargs):
   
   Args:
     decomp: either an R decomposition (class 'stl' or 'decomposed.ts') or 
-      a Pandas Data Frame from extractors.decomposition.
+      a Pandas Data Frame from converters.decomposition.
     kwargs: keyword arguments passed through a pandas DataFrame
       and on to pyplot.plot().
       
@@ -54,7 +54,7 @@ def plot_forecast(fc, data, test=None, loc='upper left'):
   Plots a forecast and its prediction intervals.
   
   Args:
-    fc: Pandas Data Frame from extractors.prediction_intervals,
+    fc: Pandas Data Frame from converters.prediction_intervals,
       or an R forecast object
     data: the data for the forecast period as a Pandas Series
     test: optional data for the forecast period as a Pandas Series

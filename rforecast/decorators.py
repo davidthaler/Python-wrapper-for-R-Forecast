@@ -7,7 +7,6 @@ in wrappers.py.
 from rpy2 import robjects
 import functools
 import converters
-import extractors
 import pandas
 
 
@@ -43,7 +42,7 @@ def wrap_series(func):
   Returns:
     A wrapper function for argument-conversion, to use as a decorator.
   '''
-  return base_wrap(func, extractors.ts_as_series)
+  return base_wrap(func, converters.ts_as_series)
   
   
 def wrap_forecast(func):
@@ -52,7 +51,7 @@ def wrap_forecast(func):
   provided. R ts objects are left alone. This function should be used to 
   decorate functions that return an R forecast object normally. If the input 
   is a Pandas Series, then the output is converted to a Pandas Data Frame 
-  containing prediction intervals using extractors.prediction_intervals(). 
+  containing prediction intervals using converters.prediction_intervals(). 
   If the input is an R ts, then the output (an R forecast) is unchanged.
   
   Args:
@@ -61,7 +60,7 @@ def wrap_forecast(func):
   Returns:
     A wrapper function for argument-conversion, to use as a decorator.
   '''
-  return base_wrap(func, extractors.prediction_intervals)
+  return base_wrap(func, converters.prediction_intervals)
 
 
 def wrap_decomp(func):
@@ -70,7 +69,7 @@ def wrap_decomp(func):
   provided. R ts objects are left alone. This function should be used to 
   decorate functions that normally return an R decomposition. If the input 
   is a Pandas Series, then the output is converted to a Pandas Data Frame 
-  containing the decomposition using extractors.decomposition(). 
+  containing the decomposition using converters.decomposition(). 
   If the input is an R ts, then the output is unchanged.
   
   Args:
@@ -79,7 +78,7 @@ def wrap_decomp(func):
   Returns:
     A wrapper function for argument-conversion, to use as a decorator.
   '''
-  return base_wrap(func, extractors.decomposition)
+  return base_wrap(func, converters.decomposition)
 
 
 def base_wrap(func, pandas_func):
@@ -122,7 +121,7 @@ def decomp_in(func):
   
   Args:
     func: the wrapped function. Takes a Pandas Data Frame like the 
-      output from extractors.decomposition.
+      output from converters.decomposition.
 
   Returns:
     A wrapper function for argument conversion, to use as a decorator.
@@ -131,7 +130,7 @@ def decomp_in(func):
   def inner(*args, **kwargs):
     if type(args[0]) is robjects.ListVector:
       args = list(args)
-      args[0] = extractors.decomposition(args[0])
+      args[0] = converters.decomposition(args[0])
     func(*args, **kwargs)
   return inner
 
@@ -145,7 +144,7 @@ def forecast_in(func):
   
   Args:
     func: the wrapped function. Takes a Pandas Data Frame returned from 
-      extractors.prediction_interval for the first argument, and a Pandas 
+      converters.prediction_interval for the first argument, and a Pandas 
       Series with the forecast data as the second.
       
   Returns:
@@ -155,8 +154,8 @@ def forecast_in(func):
   def inner(*args, **kwargs):
     if type(args[0]) is robjects.ListVector:
       fc = args[0]
-      pi = extractors.prediction_intervals(fc)
-      x = extractors.ts_as_series(fc.rx2('x'))
+      pi = converters.prediction_intervals(fc)
+      x = converters.ts_as_series(fc.rx2('x'))
       args = (pi, x)
     func(*args, **kwargs)
   return inner

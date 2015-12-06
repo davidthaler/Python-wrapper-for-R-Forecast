@@ -1,6 +1,7 @@
 import unittest
 from rforecast import wrappers
 from rforecast import converters
+from rforecast.ts_io import read_ts
 import rpy2
 from rpy2 import robjects
 from rpy2.robjects.packages import importr
@@ -16,11 +17,9 @@ class WrappersTestCase(unittest.TestCase):
 
 
   def setUp(self):
-    self.fc = importr('forecast')
-    importr('fpp')
-    self.oil = robjects.r('oil')
-    self.aus = robjects.r('austourists')
-    self.gold = robjects.r('gold')
+    self.oil = read_ts('oil', 'fpp', False)
+    self.aus = read_ts('austourists', 'fpp', False)
+    self.gold = read_ts('gold', as_pandas=False)
     self.tsn = converters.ts([1, 2, NA, 4])
     self.tss = converters.ts([1, 2, 3, 1, 2, 3, 1, NA, 3], frequency=3)
     self.vss = [1,2,3,4] * 4
@@ -68,9 +67,8 @@ class WrappersTestCase(unittest.TestCase):
     self.assertAlmostEqual(clean_gold[419], 373.975, places=3)
     self.assertAlmostEqual(clean_gold[604], 459.175, places=3)
 
-
-
-
-
+  def test_findfrequency(self):
+    self.assertEqual(wrappers.findfrequency(self.aus), 4)
+    self.assertEqual(wrappers.findfrequency(self.oil), 1)
 
 

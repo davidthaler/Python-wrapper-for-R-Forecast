@@ -1,13 +1,13 @@
 import unittest
 from rforecast import wrappers
-from rforecast import io
+from rforecast import ts_io
 
 
 class EndToEndTestCase(unittest.TestCase):
 
   def setUp(self):
-    self.oil = io.read_ts('data/oil.csv')
-    self.aus = io.read_ts('data/aus.csv')
+    self.oil = ts_io.read_series('data/oil.csv')
+    self.aus = ts_io.read_series('data/aus.csv')
 
   def test_naive(self):
     fc = wrappers.naive(self.oil)

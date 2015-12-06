@@ -68,4 +68,18 @@ class EndToEndTestCase(unittest.TestCase):
     self.assertAlmostEqual(fc.lower80[(2011, 1)], 56.69656, places=3)
     self.assertAlmostEqual(fc.upper95[(2012, 4)], 57.59713, places=3)
 
+  def test_acf(self):
+    acf = wrappers.acf(self.oil, lag_max=10)
+    self.assertEqual(acf.name, 'Acf')
+    self.assertEqual(len(acf), 10)
+    self.assertAlmostEqual(acf[1], 0.8708, places=3)
+    self.assertAlmostEqual(acf[10], -0.2016, places=3)
+
+  def test_pacf(self):
+    acf = wrappers.pacf(self.oil, lag_max=10)
+    self.assertEqual(acf.name, 'Pacf')
+    self.assertEqual(len(acf), 10)
+    self.assertAlmostEqual(acf[1], 0.8708, places=3)
+    self.assertAlmostEqual(acf[10], 0.1104, places=3)
+
 

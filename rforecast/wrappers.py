@@ -639,6 +639,113 @@ def tsclean(x, **kwargs):
   return converters.series_out(out, is_pandas)
 
 
+def findfrequency(x):
+  '''
+  Performs spectral analysis of x to find the dominant frequency, if there 
+  is one.
+  
+  Args:
+    x: an R time series or a Pandas Series
+
+  Returns:
+    The dominant frequency in x, or 1 if there isn't one.
+  '''
+  x, _ = converters.to_ts(x)
+  return forecast.findfrequency(x)[0]
+
+
+def ndiffs(x, **kwargs):
+  '''
+  Estimates the number of first differences (non-seasonal) to take on the 
+  time series, x, to reach stationarity.
+  
+  Args:
+    x: an R time series or a Pandas Series
+    alpha: Default 0.05, the level of the test used
+    test : Test to use to determine number of first differences. Default 
+        is 'kpss', for the KPSS test. Other values are 'adf' for augmented 
+        Dickey-Fuller, or 'pp' for Phillips-Perron.
+    max_d: max number of differences to try. Default is 2.
+    
+  Returns:
+    The number of differences to take
+  '''
+  x, _ = converters.to_ts(x)
+  kwargs = converters.translate_kwargs(**kwargs)
+  return forecast.ndiffs(x, **kwargs)[0]
+  
+  
+def nsdiffs(x, **kwargs):
+  '''
+  Estimates the number of seasonal differences to take on the time series, 
+  x, to reach stationarity. For this function, x must be a seasonal series.
+  
+  Args:
+    x: an R time series or a Pandas Series
+    m: Seasonal period. Default is frequency(x). No other value makes sense.
+    test : Test to use to determine number of seasonal differences.
+        Default is 'ocsb' for the Osborn-Chui-Smith-Birchenhall  test. 
+        The alternative is 'ch' for the Canova-Hansen test. 
+    max_D: Maximum number of seasonal differences to try. Default is 1.
+    
+  Returns:
+    The number of seasonal differences to take
+  '''
+  x, _ = converters.to_ts(x)
+  kwargs = converters.translate_kwargs(**kwargs)
+  return forecast.nsdiffs(x, **kwargs)[0]
+
+
+def acf(x, lag_max=NULL):
+  '''
+  Function computes the autocorrelation of a univariate time series.
+  
+  Args:
+    x: an R time series or a Pandas Series
+    lag_max: The maximum number of lags to use. The default is NULL, which 
+      uses a formula for the number of lags that should get a sensible value.
+
+  Returns:
+    The autocorrelation for all lags up to lag_max, either as a Pandas Series, 
+    or as an R object.
+  '''
+  x, is_pandas = converters.to_ts(x)
+  kwargs = {'lag.max' : lag_max}
+  out = forecast.Acf(x, plot=False, **kwargs)
+  return converters.acf_out(out, is_pandas)
+  
+  
+def pacf(x, lag_max=NULL):
+  '''
+  Function computes the partial autocorrelation of a univariate time series.
+  
+  Args:
+    x: an R time series or a Pandas Series
+    lag_max: The maximum number of lags to use. The default is NULL, which 
+      uses a formula for the number of lags that should get a sensible value.
+
+  Returns:
+    The partial autocorrelation for all lags up to lag_max, either as a 
+    Pandas Series, or as an R object.
+  '''
+  x, is_pandas = converters.to_ts(x)
+  kwargs = {'lag.max' : lag_max}
+  out = forecast.Pacf(x, plot=False, **kwargs)
+  return converters.acf_out(out, is_pandas)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

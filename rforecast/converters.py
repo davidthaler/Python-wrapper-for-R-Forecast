@@ -36,7 +36,24 @@ def to_ts(x):
   else:
     return x, False
   
+
+def acf_out(x, is_pandas):
+  '''
+  Accepts an R 'acf' object and returns either that object, or a Pandas 
+  Series with the same data.
   
+  Args:
+    x: an R object of class 'acf'
+    is_pandas: True if the output should be a Pandas Series, False otherwise
+    
+  Returns:
+    either an R 'acf' object or a Pandas Series with the same data
+  '''
+  if is_pandas:
+    return Acf(x)
+  else:
+    return x
+
 def series_out(x, is_pandas):
   '''
   Accepts an R time series and returns the input as-is if is_pandas is False, 
@@ -466,7 +483,25 @@ def decomposition(decomp):
     raise ValueError('Argument must map to an R seasonal decomposition.')
 
 
+def Acf(acf):
+  '''
+  Function to extract a Pandas Series based on the provided R acf object.
+  
+  Args:
+    acf: an R object with class 'acf'
 
+  Returns:
+    a Pandas Series with the autocorrelation values from the argument
+  '''
+  lags = list(acf.rx2('lag'))
+  data = list(acf.rx2('acf'))
+  if acf.rx2('type')[0] == 'partial':
+    name = 'Pacf'
+  elif acf.rx2('type')[0] == 'correlation':
+    name = 'Acf'
+    lags = lags[1:]
+    data = data[1:]
+  return pandas.Series(data=data, index=lags, name=name)
 
 
 

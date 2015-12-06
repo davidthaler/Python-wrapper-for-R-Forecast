@@ -1,10 +1,9 @@
 import unittest
 from rforecast import wrappers
 from rforecast import converters
-from rforecast.ts_io import read_ts
+from rforecast import ts_io
 import rpy2
 from rpy2 import robjects
-from rpy2.robjects.packages import importr
 import numpy
 import pandas
 
@@ -17,13 +16,15 @@ class WrappersTestCase(unittest.TestCase):
 
 
   def setUp(self):
-    self.oil = read_ts('oil', 'fpp', False)
-    self.aus = read_ts('austourists', 'fpp', False)
-    self.gold = read_ts('gold', as_pandas=False)
+    self.oil = ts_io.read_ts('oil', 'fpp', False)
+    self.aus = ts_io.read_ts('austourists', 'fpp', False)
+    self.gold = ts_io.read_ts('gold', as_pandas=False)
     self.tsn = converters.ts([1, 2, NA, 4])
     self.tss = converters.ts([1, 2, 3, 1, 2, 3, 1, NA, 3], frequency=3)
     self.vss = [1,2,3,4] * 4
     self.vns = range(10)
+    self.rnd = converters.sequence_as_series(numpy.random.random((100,)), 
+                                             freq=4)
     
     
   def test_frequency(self):
@@ -70,5 +71,18 @@ class WrappersTestCase(unittest.TestCase):
   def test_findfrequency(self):
     self.assertEqual(wrappers.findfrequency(self.aus), 4)
     self.assertEqual(wrappers.findfrequency(self.oil), 1)
+
+  def test_ndiffs(self):
+    self.assertEqual(wrappers.ndiffs(self.oil), 1)
+    self.assertEqual(wrappers.ndiffs(self.rnd), 0)
+
+  def test_nsdiffs(self):
+    self.assertEqual(wrappers.nsdiffs(self.aus), 1)
+    self.assertEqual(wrappers.nsdiffs(self.rnd), 0)
+
+
+
+
+
 
 

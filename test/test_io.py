@@ -23,3 +23,9 @@ class IOTestCase(unittest.TestCase):
     # This has 4 columns, and should raise an IOError:
     self.assertRaises(IOError, ts_io.read_series, 'data/bad.csv')
 
+
+  def test_read_ts(self):
+    oil = ts_io.read_ts('oil','fpp',as_pandas=True)
+    self.assertEqual(len(oil), 46)
+    self.assertListEqual(list(oil.index), range(1965, 2011))
+

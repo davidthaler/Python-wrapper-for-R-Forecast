@@ -23,8 +23,11 @@ class WrappersTestCase(unittest.TestCase):
     self.tss = converters.ts([1, 2, 3, 1, 2, 3, 1, NA, 3], frequency=3)
     self.vss = [1,2,3,4] * 4
     self.vns = range(10)
-    self.rnd = converters.sequence_as_series(numpy.random.random((100,)), 
-                                             freq=4)
+    r = [ 0.00287731,  0.58436909,  0.37650672,  0.10024602,  0.46983146,
+        0.36542408,  0.47136475,  0.79978803,  0.70349953,  0.69531808,
+        0.54447409,  0.82227504,  0.99736304,  0.91404314,  0.42225177,
+        0.14696605,  0.08098318,  0.11046747,  0.8412757 ,  0.73562921]
+    self.rnd = converters.sequence_as_series(r, freq=4)
     
     
   def test_frequency(self):

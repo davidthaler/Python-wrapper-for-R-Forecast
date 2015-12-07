@@ -191,7 +191,7 @@ def ses(x, h=10, level=(80, 95), alpha=NULL, lam=NULL):
   Args:
     x: an R time series, obtained from converters.ts(), or a Pandas Series
       with the correct index (e.g. from converters.sequence_as_series().
-    h: the forecast horizon
+    h: the forecast horizon, default 10
     level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
     alpha: exponential smoothing parameter. Must be a float value between 
@@ -225,7 +225,7 @@ def holt(x, h=10, level=(80, 95), alpha=NULL,
   Args:
     x: an R time series, obtained from converters.ts(), or a Pandas Series
       with the correct index (e.g. from converters.sequence_as_series().
-    h: the forecast horizon
+    h: the forecast horizon, default 10
     level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
     alpha: level smoothing parameter. Must be a float value between 
@@ -384,7 +384,6 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
         explosively.
     level : A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
-
         
   Returns:
     If x is an R ts object, an R forecast is returned. If x is a Pandas 
@@ -403,6 +402,52 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
   out = forecast.forecast_ets(ets_model, h, level=level)
   return converters.forecast_out(out, is_pandas)
   
+  
+def arima(x, h=None, level=(80,95), order=(0,0,0), seasonal=(0,0,0), 
+         lam=NULL, **kwargs):
+  '''
+  Generates a forecast from an arima model with a fixed specification.
+  For an arima model with an optimized specification, use auto.arima.
+  Keyword arguments are allowed. Some common ones are noted below.
+  
+  Args:
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
+    h: the forecast horizon, default 10
+    level: A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
+    order: the non-seasonal part of the arima model
+    seasonal: the seasonal part of the arima model
+    lam: BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
+  
+  Keyword Args:
+    include_drift: Default False. If True, the model includes a linear 
+      drift term
+    include_mean: Should the model allow a non-zero mean term?
+      Default is True if series is undifferenced, False otherwise
+    include_constant: If True, include mean if series is not differenced,
+      or include drift if it is differenced once.
+    
+  Returns:
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
+  '''
+  x, is_pandas = converters.to_ts(x)
+  if h is None:
+    if seasonal == (0,0,0):
+      h = 10
+    else:
+      h = 2 * frequency(x)
+  level = converters.map_arg(level)
+  order = converters.map_arg(order)
+  seasonal = converters.map_arg(seasonal)
+  kwargs['lambda'] = lam
+  model = forecast.Arima(x, order=order, seasonal=seasonal, **kwargs)
+  out = forecast.forecast(model, h=h, level=level)
+  return converters.forecast_out(out, is_pandas)
+   
 
 def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
                max_order=5, max_d=2, max_D=1, start_p=2, start_q=2, 

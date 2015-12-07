@@ -116,6 +116,18 @@ class EndToEndTestCase(unittest.TestCase):
     self.assertRaises(ValueError, wrappers.hw, self.aus, gamma=0)
     self.assertRaises(ValueError, wrappers.hw, self.aus, gamma=1.0)
 
+  def test_arima(self):
+    fc = wrappers.arima(self.aus, order=(1,0,0), seasonal=(1,1,0), 
+                        include_constant=True)
+    self.assertAlmostEqual(fc.point_fc[(2011, 1)], 60.6420, places=3)
+    self.assertAlmostEqual(fc.point_fc[(2012, 4)], 51.5535, places=3)
+    self.assertAlmostEqual(fc.lower80[(2011, 1)], 57.5701, places=3)
+    self.assertAlmostEqual(fc.upper95[(2012, 4)], 57.5242, places=3)
+    self.assertEqual(fc.shape[0], 8)
+    fc = wrappers.arima(self.oil, order=(0,1,0))
+    self.assertEqual(fc.shape[0], 10)
+
+
 
 
 

@@ -182,6 +182,128 @@ def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   return converters.forecast_out(out, is_pandas)
 
 
+def ses(x, h=10, level=(80, 95), alpha=NULL, lam=NULL):
+  '''
+  Generate a simple exponential smoothing forecast for the time series x.
+  This function does not optimize the initial value. To get an optimal 
+  initial value, use ets() with model_spec='ANN'.
+  
+  Args:
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
+    h: the forecast horizon
+    level: A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
+    alpha: exponential smoothing parameter. Must be a float value between 
+      0.0001 and 0.9999 or R's NULL value (the default), in which
+      case this parameter is optimized.
+    lam: BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
+  
+  Returns:
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
+  '''
+  if alpha is not NULL:
+    if alpha < 0.0001 or alpha > 0.9999:
+      raise ValueError('alpha must be between 0.0001 and 0.9999, if given')
+  x, is_pandas = converters.to_ts(x)
+  level = converters.map_arg(level)
+  out = forecast.ses(x, h, level=level, alpha=alpha, 
+                     initial='simple', **{'lambda' : lam})
+  return converters.forecast_out(out, is_pandas)
+
+
+def holt(x, h=10, level=(80, 95), alpha=NULL, 
+         beta=NULL, damped=False, lam=NULL):
+  '''
+  Generates a forecast using Holt's exponential smoothing method.
+  Initial values are fitted from the first values in x. For optimized values, 
+  use ets() with model_spec='AAN'.
+  
+  Args:
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
+    h: the forecast horizon
+    level: A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
+    alpha: level smoothing parameter. Must be a float value between 
+      0.0001 and 0.9999 or R's NULL value (the default), in which
+      case this parameter is optimized.
+    beta: trend smoothing parameter. Must be a float value between 
+      0.0001 and 0.9999 or R's NULL value (the default), in which
+      case this parameter is optimized.
+    damped: Default False. If True, use a damped trend.
+    lam: BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
+
+  Returns:
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
+  '''
+  if alpha is not NULL:
+    if alpha < 0.0001 or alpha > 0.9999:
+      raise ValueError('alpha must be between 0.0001 and 0.9999, if given')
+  if beta is not NULL:
+    if beta < 0.0001 or beta > 0.9999:
+      raise ValueError('beta must be between 0.0001 and 0.9999, if given')
+  x, is_pandas = converters.to_ts(x)
+  level = converters.map_arg(level)
+  out = forecast.holt(x, h, level=level, alpha=alpha, beta=beta, 
+                      damped=damped, initial='simple', **{'lambda' : lam})
+  return converters.forecast_out(out, is_pandas)
+
+
+def hw(x, h=None, level=(80, 95), alpha=NULL, beta=NULL, 
+       gamma=NULL, damped=False, lam=NULL):
+  '''
+  Generates a forecast using Holt-Winter's exponential smoothing.
+  Initial values are fitted from the first values in x. For optimized values, 
+  use ets() with model_spec='AAA'.
+
+  Args:
+    x: an R time series, obtained from converters.ts(), or a Pandas Series
+      with the correct index (e.g. from converters.sequence_as_series().
+    h: the forecast horizon
+    level: A number or list/tuple of prediction interval confidence values.
+      Default is 80% and 95% intervals.
+    alpha: level smoothing parameter. Must be a float value between 
+      0.0001 and 0.9999 or R's NULL value (the default), in which
+      case this parameter is optimized.
+    beta: trend smoothing parameter. Must be a float value between 
+      0.0001 and 0.9999 or R's NULL value (the default), in which
+      case this parameter is optimized.
+    gamma: seasonal smoothing parameter. Must be a float value between 
+      0.0001 and 0.9999 or R's NULL value (the default), in which
+      case this parameter is optimized.
+    damped: Default False. If True, use a damped trend.
+    lam: BoxCox transformation parameter. The default is R's NULL value.
+      If NULL, no transformation is applied. Otherwise, a Box-Cox 
+      transformation is applied before forecasting and inverted after.
+
+  Returns:
+    If x is an R ts object, an R forecast is returned. If x is a Pandas 
+    Series, a Pandas Data Frame is returned.
+  '''
+  if alpha is not NULL:
+    if alpha < 0.0001 or alpha > 0.9999:
+      raise ValueError('alpha must be between 0.0001 and 0.9999, if given')
+  if beta is not NULL:
+    if beta < 0.0001 or beta > 0.9999:
+      raise ValueError('beta must be between 0.0001 and 0.9999, if given')
+  if gamma is not NULL:
+    if gamma < 0.0001 or gamma > 0.9999:
+      raise ValueError('gamma must be between 0.0001 and 0.9999, if given')
+  x, is_pandas = converters.to_ts(x)
+  h = _get_horizon(x, h)
+  level = converters.map_arg(level)
+  out = forecast.hw(x, h, level=level, alpha=alpha, beta=beta, gamma=gamma, 
+                 damped=damped, initial='simple', **{'lambda' : lam})
+  return converters.forecast_out(out, is_pandas)
+
+
 def forecast_ts(x, h=None, **kwargs):
   '''
   Generate a forecast for the time series x, using ets if x is non-seasonal 

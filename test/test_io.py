@@ -28,4 +28,5 @@ class IOTestCase(unittest.TestCase):
     oil = ts_io.read_ts('oil','fpp',as_pandas=True)
     self.assertEqual(len(oil), 46)
     self.assertListEqual(list(oil.index), range(1965, 2011))
-
+    self.assertRaises(IOError, ts_io.read_ts, 'foo')
+    self.assertRaises(IOError, ts_io.read_ts, 'oil', pkgname='foo')

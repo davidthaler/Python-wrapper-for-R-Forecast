@@ -6,8 +6,10 @@ import pandas
 import converters
 from rpy2 import robjects
 from rpy2.robjects.packages import importr
+from rpy2.rinterface import RRuntimeError
 
 
+# TODO: if we accept msts, this will have to accept more than 3 columns
 def read_series(file):
   '''
   Function read_ts reads a csv file of a time series. Input file should have 
@@ -54,8 +56,14 @@ def read_ts(ts_name, pkgname=None, as_pandas=True):
     the time series as an R time series or a Pandas Series
   '''
   if pkgname is not None:
-    importr(pkgname)
-  tsout = robjects.r(ts_name)
+    try:
+      importr(pkgname)
+    except RRuntimeError:
+      raise IOError('Package %s not found in R.' % pkgname)
+  try:
+    tsout = robjects.r(ts_name)
+  except RRuntimeError:
+    raise IOError('Time series %s not found in R.' % ts_name)
   return converters.series_out(tsout, as_pandas)
 
 

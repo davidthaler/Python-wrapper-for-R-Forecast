@@ -38,13 +38,13 @@ class EndToEndTestCase(unittest.TestCase):
     self.assertAlmostEqual(fc.lower80[2011], 404.7558, places=3)
     self.assertAlmostEqual(fc.upper95[2020], 772.5385, places=3)
 
-  def test_forecast_ts(self):
-    fc = wrappers.forecast_ts(self.oil)
+  def test_forecast(self):
+    fc = wrappers.forecast(self.oil)
     self.assertAlmostEqual(fc.point_fc[2011], 467.7721, places=3)
     self.assertAlmostEqual(fc.point_fc[2020], 467.7721, places=3)
     self.assertAlmostEqual(fc.lower80[2011], 405.3255, places=3)
     self.assertAlmostEqual(fc.upper95[2020], 769.7543, places=3)
-    fc = wrappers.forecast_ts(self.aus)
+    fc = wrappers.forecast(self.aus)
     self.assertAlmostEqual(fc.point_fc[(2011, 1)], 57.87294, places=3)
     self.assertAlmostEqual(fc.point_fc[(2012, 4)], 52.84327, places=3)
     self.assertAlmostEqual(fc.lower80[(2011, 1)], 53.30794, places=3)

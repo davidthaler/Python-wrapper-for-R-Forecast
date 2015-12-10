@@ -9,7 +9,7 @@ import pandas
 import converters
 
 
-forecast = importr('forecast')
+fc = importr('forecast')
 stats = importr('stats')
 NULL = robjects.NULL
 NA = robjects.NA_Real
@@ -71,7 +71,7 @@ def meanf(x, h=10, level=(80,95), lam=NULL):
   '''
   x, is_pandas = converters.to_ts(x)
   level = converters.map_arg(level)
-  out = forecast.meanf(x, h, level=level, **{'lambda' : lam})
+  out = fc.meanf(x, h, level=level, **{'lambda' : lam})
   return converters.forecast_out(out, is_pandas)
   
 
@@ -96,7 +96,7 @@ def thetaf(x, h=10, level=(80, 95)):
   '''
   x, is_pandas = converters.to_ts(x)
   level = converters.map_arg(level)
-  out = forecast.thetaf(x, h, level=level)
+  out = fc.thetaf(x, h, level=level)
   return converters.forecast_out(out, is_pandas)
 
 
@@ -122,7 +122,7 @@ def naive(x, h=10, level=(80, 95), lam=NULL):
   '''
   x, is_pandas = converters.to_ts(x)
   level = converters.map_arg(level)
-  out = forecast.naive(x, h, level=level, **{'lambda' : lam})
+  out = fc.naive(x, h, level=level, **{'lambda' : lam})
   return converters.forecast_out(out, is_pandas)
   
 
@@ -151,7 +151,7 @@ def snaive(x, h=None, level=(80, 95), lam=NULL):
   x, is_pandas = converters.to_ts(x)
   h = _get_horizon(x, h)
   level = converters.map_arg(level)
-  out = forecast.snaive(x, h, level=level, **{'lambda' : lam})
+  out = fc.snaive(x, h, level=level, **{'lambda' : lam})
   return converters.forecast_out(out, is_pandas)
   
 
@@ -178,7 +178,7 @@ def rwf(x, h=10, drift=False, level=(80, 95), lam=NULL):
   '''
   x, is_pandas = converters.to_ts(x)
   level = converters.map_arg(level)
-  out = forecast.rwf(x, h, drift, level=level, **{'lambda' : lam})
+  out = fc.rwf(x, h, drift, level=level, **{'lambda' : lam})
   return converters.forecast_out(out, is_pandas)
 
 
@@ -210,7 +210,7 @@ def ses(x, h=10, level=(80, 95), alpha=NULL, lam=NULL):
       raise ValueError('alpha must be between 0.0001 and 0.9999, if given')
   x, is_pandas = converters.to_ts(x)
   level = converters.map_arg(level)
-  out = forecast.ses(x, h, level=level, alpha=alpha, 
+  out = fc.ses(x, h, level=level, alpha=alpha, 
                      initial='simple', **{'lambda' : lam})
   return converters.forecast_out(out, is_pandas)
 
@@ -251,7 +251,7 @@ def holt(x, h=10, level=(80, 95), alpha=NULL,
       raise ValueError('beta must be between 0.0001 and 0.9999, if given')
   x, is_pandas = converters.to_ts(x)
   level = converters.map_arg(level)
-  out = forecast.holt(x, h, level=level, alpha=alpha, beta=beta, 
+  out = fc.holt(x, h, level=level, alpha=alpha, beta=beta, 
                       damped=damped, initial='simple', **{'lambda' : lam})
   return converters.forecast_out(out, is_pandas)
 
@@ -299,12 +299,12 @@ def hw(x, h=None, level=(80, 95), alpha=NULL, beta=NULL,
   x, is_pandas = converters.to_ts(x)
   h = _get_horizon(x, h)
   level = converters.map_arg(level)
-  out = forecast.hw(x, h, level=level, alpha=alpha, beta=beta, gamma=gamma, 
+  out = fc.hw(x, h, level=level, alpha=alpha, beta=beta, gamma=gamma, 
                  damped=damped, initial='simple', **{'lambda' : lam})
   return converters.forecast_out(out, is_pandas)
 
 
-def forecast_ts(x, h=None, **kwargs):
+def forecast(x, h=None, **kwargs):
   '''
   Generate a forecast for the time series x, using ets if x is non-seasonal 
   or has frequency less than 13, and stlf if x is periodic with frequency 
@@ -334,7 +334,7 @@ def forecast_ts(x, h=None, **kwargs):
   x, is_pandas = converters.to_ts(x)
   h = _get_horizon(x, h)
   kwargs = converters.translate_kwargs(**kwargs)
-  out = forecast.forecast(x, h=h, **kwargs)
+  out = fc.forecast(x, h=h, **kwargs)
   return converters.forecast_out(out, is_pandas)
 
 
@@ -394,12 +394,12 @@ def ets(x, h=None, model_spec='ZZZ', damped=NULL, alpha=NULL,
             'additive.only' : additive_only, 
             'opt.crit' : opt_crit,
             'lambda' : lam}
-  ets_model = forecast.ets(x, model=model_spec, damped=damped, alpha=alpha, 
+  ets_model = fc.ets(x, model=model_spec, damped=damped, alpha=alpha, 
                        beta=beta, gamma=gamma, phi=phi, ic=ic, **kwargs)
   h = _get_horizon(x, h)
   level = converters.map_arg(level)
   # NB: default lambda is correct - it will be taken from model
-  out = forecast.forecast_ets(ets_model, h, level=level)
+  out = fc.forecast_ets(ets_model, h, level=level)
   return converters.forecast_out(out, is_pandas)
   
   
@@ -413,7 +413,8 @@ def arima(x, h=None, level=(80,95), order=(0,0,0), seasonal=(0,0,0),
   Args:
     x: an R time series, obtained from converters.ts(), or a Pandas Series
       with the correct index (e.g. from converters.sequence_as_series().
-    h: the forecast horizon, default 10
+    h: the forecast horizon, default 10 if fitting a non-seasonal model,
+      2 * the frequency of the series for seasonal models.
     level: A number or list/tuple of prediction interval confidence values.
       Default is 80% and 95% intervals.
     order: the non-seasonal part of the arima model
@@ -444,11 +445,12 @@ def arima(x, h=None, level=(80,95), order=(0,0,0), seasonal=(0,0,0),
   order = converters.map_arg(order)
   seasonal = converters.map_arg(seasonal)
   kwargs['lambda'] = lam
-  model = forecast.Arima(x, order=order, seasonal=seasonal, **kwargs)
-  out = forecast.forecast(model, h=h, level=level)
+  model = fc.Arima(x, order=order, seasonal=seasonal, **kwargs)
+  out = fc.forecast(model, h=h, level=level)
   return converters.forecast_out(out, is_pandas)
    
 
+# TODO: convert xreg and newxreg if needed
 def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
                max_order=5, max_d=2, max_D=1, start_p=2, start_q=2, 
                start_P=1, start_Q=1, stationary=False, seasonal=True, 
@@ -484,7 +486,8 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
     xreg : An optional vector or matrix of regressors, which must have one 
         row/element for each point in x. Default is NULL, for no regressors.
     newxreg : If regressors were used to fit the model, then they must be 
-        supplied for the forecast period as newxreg.
+        supplied for the forecast period as newxreg. If newxreg is present,
+        h is ignored.
     test : Test to use to determine number of first differences. Default 
         is 'kpss', for the KPSS test. Other values are 'adf' for augmented 
         Dickey-Fuller, or 'pp' for Phillips-Perron.
@@ -507,13 +510,13 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
             'max.D' : max_D, 'start.p' : start_p, 'start.q' : start_q, 
             'start.P' : start_P, 'start.Q' : start_Q, 
             'seasonal.test' : seasonal_test, 'lambda' : lam}
-  arima_model = forecast.auto_arima(x, d=d, D=D, stationary=stationary, 
+  arima_model = fc.auto_arima(x, d=d, D=D, stationary=stationary, 
                                     seasonal=seasonal, ic=ic, xreg=xreg, 
                                     test=test, **kwargs)
   h = _get_horizon(x, h)
   level = converters.map_arg(level)
   # NB: default lambda is correct - it will be taken from model
-  out = forecast.forecast_Arima(arima_model, h, level=level, xreg=newxreg)
+  out = fc.forecast_Arima(arima_model, h, level=level, xreg=newxreg)
   return converters.forecast_out(out, is_pandas)
 
 
@@ -561,7 +564,7 @@ def stlf(x, h=None, s_window=7, robust=False, lam=NULL, method='ets',
   kwargs = {'s.window' : s_window,
             'lambda' : lam}
   level = converters.map_arg(level)
-  out = forecast.stlf(x, h, level=level, robust=robust, method=method, 
+  out = fc.stlf(x, h, level=level, robust=robust, method=method, 
                        etsmodel=etsmodel, xreg=xreg, newxreg=newxreg, **kwargs)
   return converters.forecast_out(out, is_pandas)
 
@@ -644,7 +647,7 @@ def seasadj(decomp):
     an object that maps an R time series of the seasonally adjusted
     values of the series that decomp was formed from
   '''
-  return forecast.seasadj(decomp)
+  return fc.seasadj(decomp)
 
 
 def sindexf(decomp, h):
@@ -660,7 +663,7 @@ def sindexf(decomp, h):
     an object that maps to am R time series containing the seasonal component 
     of decomp, projected naively forward h steps.
   '''
-  return forecast.sindexf(x, h)
+  return fc.sindexf(x, h)
   
 
 def BoxCox(x, lam):
@@ -681,7 +684,7 @@ def BoxCox(x, lam):
     If x is a Pandas Series, a Pandas Series is returned.
   '''
   x, is_pandas = converters.to_ts(x)
-  out = forecast.BoxCox(x, **{'lambda' : lam})
+  out = fc.BoxCox(x, **{'lambda' : lam})
   return converters.series_out(out, is_pandas)
   
 
@@ -702,7 +705,7 @@ def InvBoxCox(x, lam):
     If x is a Pandas Series, a Pandas Series is returned.
   '''
   x, is_pandas = converters.to_ts(x)
-  out = forecast.InvBoxCox(x, **{'lambda' : lam})
+  out = fc.InvBoxCox(x, **{'lambda' : lam})
   return converters.series_out(out, is_pandas)
   
 
@@ -722,7 +725,7 @@ def BoxCox_lambda(x, method='guerrero', lower=-1, upper=2):
     value of lambda for the series x, as calculated by the selected method
   '''
   x, _ = converters.to_ts(x)
-  return forecast.BoxCox_lambda(x, method=method, lower=lower, upper=upper)[0]
+  return fc.BoxCox_lambda(x, method=method, lower=lower, upper=upper)[0]
 
 
 def na_interp(x, lam=NULL):
@@ -746,11 +749,11 @@ def na_interp(x, lam=NULL):
     In either case, missing values are filled.
   '''
   x, is_pandas = converters.to_ts(x)
-  out = forecast.na_interp(x, **{'lambda' : lam})
+  out = fc.na_interp(x, **{'lambda' : lam})
   return converters.series_out(out, is_pandas)
   
 
-def accuracy(fc, x=None, **kwargs):
+def accuracy(result, x=None, **kwargs):
   '''
   Computes an R matrix of forecast accuracy measures. Must take an R forecast 
   object for input, since the residuals are not included in the Pandas 
@@ -769,7 +772,7 @@ def accuracy(fc, x=None, **kwargs):
     * Theil's U (only if x provided)
   
   Args:
-    fc: an R forecast object
+    result: an R forecast object
     x: optional R vector of true values for the forecast (test data)
     d: Number of first differences taken in forecast, default is none.
     D: Number of seasonal differences taken in forecast, default is none.
@@ -780,7 +783,7 @@ def accuracy(fc, x=None, **kwargs):
   '''
   if x is not None:
     kwargs['x'] = x
-  return forecast.accuracy(fc, **kwargs)
+  return fc.accuracy(result, **kwargs)
 
 
 def tsclean(x, **kwargs):
@@ -802,7 +805,7 @@ def tsclean(x, **kwargs):
   '''
   x, is_pandas = converters.to_ts(x)
   kwargs = converters.translate_kwargs(**kwargs)
-  out = forecast.tsclean(x, **kwargs)
+  out = fc.tsclean(x, **kwargs)
   return converters.series_out(out, is_pandas)
 
 
@@ -818,7 +821,7 @@ def findfrequency(x):
     The dominant frequency in x, or 1 if there isn't one.
   '''
   x, _ = converters.to_ts(x)
-  return forecast.findfrequency(x)[0]
+  return fc.findfrequency(x)[0]
 
 
 def ndiffs(x, **kwargs):
@@ -839,7 +842,7 @@ def ndiffs(x, **kwargs):
   '''
   x, _ = converters.to_ts(x)
   kwargs = converters.translate_kwargs(**kwargs)
-  return forecast.ndiffs(x, **kwargs)[0]
+  return fc.ndiffs(x, **kwargs)[0]
   
   
 def nsdiffs(x, **kwargs):
@@ -860,7 +863,7 @@ def nsdiffs(x, **kwargs):
   '''
   x, _ = converters.to_ts(x)
   kwargs = converters.translate_kwargs(**kwargs)
-  return forecast.nsdiffs(x, **kwargs)[0]
+  return fc.nsdiffs(x, **kwargs)[0]
 
 
 def acf(x, lag_max=NULL):
@@ -878,7 +881,7 @@ def acf(x, lag_max=NULL):
   '''
   x, is_pandas = converters.to_ts(x)
   kwargs = {'lag.max' : lag_max}
-  out = forecast.Acf(x, plot=False, **kwargs)
+  out = fc.Acf(x, plot=False, **kwargs)
   return converters.acf_out(out, is_pandas)
   
   
@@ -897,7 +900,7 @@ def pacf(x, lag_max=NULL):
   '''
   x, is_pandas = converters.to_ts(x)
   kwargs = {'lag.max' : lag_max}
-  out = forecast.Pacf(x, plot=False, **kwargs)
+  out = fc.Pacf(x, plot=False, **kwargs)
   return converters.acf_out(out, is_pandas)
 
 

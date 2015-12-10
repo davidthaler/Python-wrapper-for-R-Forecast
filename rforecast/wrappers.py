@@ -510,6 +510,12 @@ def auto_arima(x, h=None, d=NA, D=NA, max_p=5, max_q=5, max_P=2, max_Q=2,
             'max.D' : max_D, 'start.p' : start_p, 'start.q' : start_q, 
             'start.P' : start_P, 'start.Q' : start_Q, 
             'seasonal.test' : seasonal_test, 'lambda' : lam}
+  if (xreg is NULL) != (newxreg is NULL):
+    raise ValueError(
+        'Specifiy both xreg and newxreg or neither.')
+  if xreg is not NULL:
+    xreg = converters.as_matrix(xreg)
+    newxreg = converters.as_matrix(newxreg)
   arima_model = fc.auto_arima(x, d=d, D=D, stationary=stationary, 
                                     seasonal=seasonal, ic=ic, xreg=xreg, 
                                     test=test, **kwargs)

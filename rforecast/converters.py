@@ -177,6 +177,24 @@ def to_forecast(fc, data, test):
     return pi, x, test
 
 
+def as_matrix(x):
+  '''
+  Converts any legal input into an R matrix. Sequences are converted to one 
+  column matrices.
+  
+  Args: 
+    x: a Python list, numpy ndarray (1-D or 2-D), Pandas Series or DataFrame,
+      or an R matrix, or any R object that as.matrix can convert.
+      
+  Returns:
+    an R matrix, with the data in x
+  '''
+  if type(x) is robjects.Matrix:
+    return x
+  else:
+    return matrix(x)
+
+
 def matrix(x):
   '''
   Converts Python data to an R matrix. This function converts lists, 1-D 

@@ -61,6 +61,10 @@ class EndToEndTestCase(unittest.TestCase):
     self.assertAlmostEqual(fc.point_fc[(2012, 4)], 51.55356, places=3)
     self.assertAlmostEqual(fc.lower80[(2011, 1)], 57.57010, places=3)
     self.assertAlmostEqual(fc.upper95[(2012, 4)], 57.52426, places=3)
+    self.assertRaises(ValueError, wrappers.auto_arima, self.oil , 
+                       xreg=range(len(self.oil)))
+    self.assertRaises(ValueError, wrappers.auto_arima, self.oil, h=10, 
+                       newxreg=range(10))
 
   def test_stlf(self):
     fc = wrappers.stlf(self.aus)    

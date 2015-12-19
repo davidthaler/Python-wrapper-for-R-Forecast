@@ -14,8 +14,8 @@ An example of generating a forecast:
    from rforecast import wrappers  
    from rforecast import ts_io  
   
-   stock = ts_io.read_series('data/livestock')  
-   fc = wrappers.stlf(stock)  
+   stock = ts_io.read_series('data/livestock.csv')  
+   fc = wrappers.forecast(stock)  
    print fc  
 
 This example uses the ``livestock`` series in ``data/`` under the installation directory.
@@ -25,7 +25,7 @@ An example of generating an STL decomposition:
 .. code-block:: python
 
    aus = ts_io.read_series('aus.csv')  
-   dc = wrappers.stl(aus, s_window=7)  
+   dc = wrappers.stl(aus, s_window=5)  
    print dc  
 
 
@@ -41,10 +41,19 @@ you can convert it to a series of the right form like this:
    from rforecast import converters  
    # A slice of the 'oil' data from R package fpp, available in data/  
    data =  [509, 506, 340, 240, 219, 172, 252, 221, 276, 271, 342, 428, 442, 432, 437]  
-   r_ts = converters.sequence_as_series(data, start=1980)  
+   ts = converters.sequence_as_series(data, start=1980)  
+   print ts
+   
+   # A seasonal (quarterly) series:
+   data = [30.05, 19.14, 25.31, 27.59, 32.07, 23.48, 28.47, 35.12, 
+           36.83, 25.00, 30.72, 28.69, 36.64, 23.82, 29.31, 31.77]
+   ts = converters.sequence_as_series(data, start=(1991, 1), freq=4)
+   print ts
 
-There is more information in the `.rst` files under ``doc/``. The documentation is 
-built with Sphinx. If you have Sphinx installed, you can build 
+There is more information in the `.rst` files under ``doc/``. 
+The documentation is built with Sphinx. 
+If you have Sphinx installed, you can build the documentation using the Makefile 
+in ``doc``:
 
 .. code-block:: bash
 

@@ -66,14 +66,16 @@ def plot_forecast(fc, data=None, test=None, loc='upper left'):
   l = list(fc.columns)
   lowers = l[1::2]
   uppers = l[2::2]
-  plt.plot(data.index, data, color='black')
-  plt.plot(fc.index, fc[l[0]], color='blue')
+  tr_idx = converters.flatten_index(data.index)
+  fc_idx = converters.flatten_index(fc.index)
+  plt.plot(tr_idx, data, color='black')
+  plt.plot(fc_idx, fc[l[0]], color='blue')
   for (k, (low, up)) in enumerate(zip(lowers, uppers), 1):
-    plt.fill_between(fc.index, fc[low], fc[up], color='grey', alpha=0.5/k)
+    plt.fill_between(fc_idx, fc[low], fc[up], color='grey', alpha=0.5/k)
   labels = ['data', 'forecast']
   if test is not None:
     n = min(len(fc.index), len(test))
-    plt.plot(fc.index[:n], list(test[:n]), color='green')
+    plt.plot(fc_idx[:n], list(test[:n]), color='green')
     labels.append('test')
   plt.legend(labels, loc=loc)
   plt.show()    

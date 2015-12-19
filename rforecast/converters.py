@@ -521,6 +521,26 @@ def Acf(acf):
     data = data[1:]
   return pandas.Series(data=data, index=lags, name=name)
 
-
+def flatten_index(idx):
+  '''
+  Function flattens a multindex into a form suitable for plotting.
+  The inner (seasonal) steps are converted to decimals.
+  If given a 1-level index, it returns it as-is.
+  
+  Args:
+    idx: the index to possibly flatten
+    
+  Returns:
+    a 1-level index
+  '''
+  if idx.nlevels == 1:
+    return idx
+  elif idx.nlevels == 2:
+    outer = idx.levels[0][idx.labels[0]]
+    freq = float(len(idx.levels[1]))
+    inner = idx.labels[1] / freq
+    return outer + inner
+  else:
+    raise ValueError('rforecast only supports single seasonality')
 
 

@@ -9,7 +9,7 @@ A few less-commnonly used functions and arguments are not exposed.
 
 An example of generating a forecast:
 
-.. code-block:: python
+.. code-block:: 
 
    from rforecast import wrappers  
    from rforecast import ts_io  
@@ -22,7 +22,7 @@ This example uses the ``livestock`` series in ``data/`` under the installation d
 
 An example of generating an STL decomposition:
 
-.. code-block:: python
+.. code-block:: 
 
    aus = ts_io.read_series('aus.csv')  
    dc = wrappers.stl(aus, s_window=5)  

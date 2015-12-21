@@ -17,16 +17,17 @@ Optional dependencies:
 ----------------------
 * `fpp package`_ - contains time series data sets  
 * `nose`_ - helpful if you want to run the tests  
+* `coverage`_ - if you want coverage statistics
 
 .. _Pandas: http://pandas.pydata.org
 .. _R: https://www.r-project.org/
 .. _R forecast: https://cran.r-project.org/web/packages/forecast/forecast.pdf
 .. _fpp package: https://cran.r-project.org/web/packages/fpp/index.html
-.. _nose: https://nose.readthedocs.org
+.. _nose: https://pypi.python.org/pypi/nose/
+.. _coverage: https://pypi.python.org/pypi/coverage
 
-
-Instructions
-------------
+Instructions Instructions
+-------------------------
 
 To install the R packages, start R and then use:
 
@@ -40,3 +41,45 @@ The rforecast.py package is installed from git:
 
     git clone https://github.com/davidthaler/Python-wrapper-for-R-Forecast.git
     python setup.py install
+
+
+Documentation Build
+-------------------
+
+The documentation builds with Sphinx (developed Sphinx 1.3).
+If you have Sphinx installed, you can build the documentation using the Makefile 
+in ``doc``:
+
+.. code-block:: bash
+
+  cd doc
+  make html
+
+Then the built documentation will start at: *doc/_build/html/index.html*.
+
+Testing
+-------
+
+Tests are in *test/* under the install directory. 
+From that level, if you have nose installed, you can run all of the tests with:
+
+.. code-block:: bash
+
+   nosetests --cover-package=rforecast
+
+If you have the *coverage* nose plugin, you can get statement coverage
+
+.. code-block:: bash
+
+  nosetests --cover-package=rforecast --with-cover
+
+And you can include branch coverage with:
+  
+.. code-block:: bash
+
+  nosetests --cover-package=rforecast --with-cover
+
+
+
+
+

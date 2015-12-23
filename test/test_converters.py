@@ -1,6 +1,5 @@
 import unittest
-from rforecast import wrappers
-from rforecast import converters
+from rforecast import wrappers, converters, ts_io
 from rpy2 import robjects
 from rpy2.robjects.packages import importr
 import pandas
@@ -15,11 +14,19 @@ class ConvertersTestCase(unittest.TestCase):
     self.aus_ts = robjects.r('austourists')
     self.fc_oil = wrappers.meanf(self.oil_ts)
     self.fc_aus = wrappers.ets(self.aus_ts)
-    self.oil = list(robjects.r('oil'))
-    self.aus = list(robjects.r('austourists'))
+    self.oil = ts_io.read_series('data/oil.csv')
+    self.aus = ts_io.read_series('data/aus.csv')
     self.data = [0.74, 0.42, 0.22, 0.04, 0.17, 0.37, 
                  0.53, 0.32, 0.82, 0.81, 0.11, 0.79]
     self.npdata = numpy.array(self.data)
+
+
+  def test_flatten_index(self):
+    idx = converters.flatten_index(self.aus.index)
+    self.assertEqual(len(idx), len(self.aus))
+    self.assertEqual(idx.nlevels, 1)
+    self.assertEqual(idx[0], 1999.0)
+    self.assertEqual(idx[-1], 2010.75)
 
 
   def test_translate_kwargs(self):
@@ -39,8 +46,10 @@ class ConvertersTestCase(unittest.TestCase):
     
     
   def test_sequence_as_series(self):
-    oil = converters.sequence_as_series(self.oil, start=1965)
-    aus = converters.sequence_as_series(self.aus, start=(1999, 1), freq=4)
+    loil = list(self.oil_ts)
+    laus = list(self.aus_ts)
+    oil = converters.sequence_as_series(loil, start=1965)
+    aus = converters.sequence_as_series(laus, start=(1999, 1), freq=4)
     self.assertEqual(oil.shape, (46,))
     self.assertEqual(oil.index.nlevels, 1)
     self.assertEqual(oil.index[0], 1965)
@@ -56,29 +65,24 @@ class ConvertersTestCase(unittest.TestCase):
     self.assertAlmostEqual(aus[(1999, 1)], 30.05, places=1)
     self.assertAlmostEqual(aus[(2010, 4)], 47.91, places=1)
 
-    aus2 = converters.sequence_as_series(self.aus, start=1999, freq=4)
+    aus2 = converters.sequence_as_series(laus, start=1999, freq=4)
     self.assertTrue(aus2.equals(aus))
     
         
   def test_series_as_ts(self):
-    oil = converters.sequence_as_series(self.oil, start=1965)
-    oil_ts = converters.series_as_ts(oil)
+    oil_ts = converters.series_as_ts(self.oil)
     self.assertTrue(type(oil_ts) is robjects.FloatVector)
     tsp = robjects.r('tsp')(oil_ts)
     self.assertAlmostEqual(tsp[0], 1965, places=1)
     self.assertAlmostEqual(tsp[1], 2010, places=1)
     self.assertAlmostEqual(tsp[2], 1, places=1)
 
-    aus = converters.sequence_as_series(self.aus, start=(1999, 1), freq=4)
-    aus_ts = converters.series_as_ts(aus)
+    aus_ts = converters.series_as_ts(self.aus)
     self.assertTrue(type(aus_ts) is robjects.FloatVector)
     tsp = robjects.r('tsp')(aus_ts)
     self.assertAlmostEqual(tsp[0], 1999, places=2)
     self.assertAlmostEqual(tsp[1], 2010.75, places=2)
     self.assertAlmostEqual(tsp[2], 4, places=1)
-
-
-# Function matrix moved in from wrappers.py
 
 
   def test_matrix_list(self):
@@ -127,8 +131,6 @@ class ConvertersTestCase(unittest.TestCase):
     else:
       return False
 
-
-# Functions moved in from extractors.py
 
   def test_get_index(self):
     oil_idx = converters._get_index(self.oil_ts)

@@ -67,9 +67,9 @@ class WrappersTestCase(unittest.TestCase):
   def test_tsclean(self):
     clean_gold = wrappers.tsclean(converters.ts_as_series(self.gold))
     self.assertFalse(clean_gold.isnull().any())
-    self.assertAlmostEqual(clean_gold[56], 309.875, places=3)
-    self.assertAlmostEqual(clean_gold[419], 373.975, places=3)
-    self.assertAlmostEqual(clean_gold[604], 459.175, places=3)
+    self.assertAlmostEqual(clean_gold[56], 333.250, places=3)
+    self.assertAlmostEqual(clean_gold[419],394.5, places=3)
+    self.assertAlmostEqual(clean_gold[604], 476.6000, places=3)
 
   def test_findfrequency(self):
     self.assertEqual(wrappers.findfrequency(self.aus), 4)

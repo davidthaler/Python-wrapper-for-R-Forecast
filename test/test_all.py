@@ -97,11 +97,11 @@ class EndToEndTestCase(unittest.TestCase):
     self.assertRaises(ValueError, wrappers.ses, self.oil, alpha=1.0)
 
   def test_holt(self):
-    fc = wrappers.holt(self.austa, damped=True)
-    self.assertAlmostEqual(fc.point_fc[2011], 5.5503, places=3)
-    self.assertAlmostEqual(fc.point_fc[2020], 6.4417, places=3)
-    self.assertAlmostEqual(fc.lower80[2011], 5.3209, places=3)
-    self.assertAlmostEqual(fc.upper95[2020], 7.7942, places=3)
+    fc = wrappers.holt(self.austa)
+    self.assertAlmostEqual(fc.point_fc[2011], 5.5690, places=3)
+    self.assertAlmostEqual(fc.point_fc[2020], 6.7219, places=3)
+    self.assertAlmostEqual(fc.lower80[2011], 5.3316, places=3)
+    self.assertAlmostEqual(fc.upper95[2020], 8.8653, places=3)
     self.assertRaises(ValueError, wrappers.holt, self.austa, alpha=0)
     self.assertRaises(ValueError, wrappers.holt, self.austa, alpha=1.0)
     self.assertRaises(ValueError, wrappers.holt, self.austa, beta=0)

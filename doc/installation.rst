@@ -26,7 +26,7 @@ Optional dependencies:
 .. _nose: https://pypi.python.org/pypi/nose/
 .. _coverage: https://pypi.python.org/pypi/coverage
 
-Instructions Instructions
+Installation Instructions
 -------------------------
 
 To install the R packages, start R and then use:

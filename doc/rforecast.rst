@@ -28,6 +28,14 @@ rforecast.ts_io module
     :undoc-members:
     :show-inheritance:
 
+rforecast.validate module
+-------------------------
+
+.. automodule:: rforecast.validate
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 rforecast.wrappers module
 -------------------------
 

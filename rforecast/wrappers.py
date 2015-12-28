@@ -7,7 +7,8 @@ from rpy2.robjects.packages import importr
 import numpy
 import pandas
 import converters
-
+import validate
+import itertools
 
 fc = importr('forecast')
 stats = importr('stats')
@@ -643,13 +644,30 @@ def seasadj(decomp):
   was seasonally decomposed to get decomp.
   
   Args:
-    decomp: an R seasonal decomposition from stl or decompose
+    decomp: an R seasonal decomposition from stl or decompose,
+      or a Pandas data frame containing a seasonal decomposition.
     
   Returns:
     an object that maps an R time series of the seasonally adjusted
     values of the series that decomp was formed from
   '''
-  return fc.seasadj(decomp)
+  if validate.is_Pandas_decomposition(decomp):
+    if decomp.trend.isnull().any():
+      # classical
+      seasonal_mean = decomp.seasonal.mean(axis=0)
+      if numpy.allclose(seasonal_mean, 1.0, atol=1e-5):
+        # multiplicative
+        return decomp.data / decomp.seasonal
+      else:
+        # additive
+        return decomp.data - decomp.seasonal
+    else:
+      # stl decomposition
+      return decomp.data - decomp.seasonal
+  elif validate.is_R_decomposition(decomp):
+    return fc.seasadj(decomp)
+  else:
+    raise ValueError('seasadj requires a seasonal decomposition as input')
 
 
 def sindexf(decomp, h):
@@ -658,14 +676,29 @@ def sindexf(decomp, h):
   forward by h time steps into the future.
   
   Args:
-    decomp: an R seasonal decomposition from stl or decompose
+    decomp: an R seasonal decomposition from stl or decompose,
+      or a Pandas data frame containing a seasonal decomposition.
     h: a forecast horizon
     
   Returns:
     an object that maps to am R time series containing the seasonal component 
     of decomp, projected naively forward h steps.
   '''
-  return fc.sindexf(x, h)
+  if validate.is_Pandas_decomposition(decomp):
+    freq = len(decomp.index.levels[1])
+    seasonal = list(decomp.seasonal[-freq:])
+    it = itertools.cycle(seasonal)
+    data = []
+    for k in range(h):
+      data.append(it.next())
+    data = [0] + data
+    start = decomp.seasonal.last_valid_index()
+    series = converters.sequence_as_series(data, start=start, freq=freq)
+    return series[1:]
+  elif validate.is_R_decomposition(decomp):
+    return fc.sindexf(decomp, h)
+  else:
+    raise ValueError('seasadj requires a seasonal decomposition as input')
   
 
 def BoxCox(x, lam):

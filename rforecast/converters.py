@@ -10,12 +10,9 @@ import pandas
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
 from math import floor
-
+import validate
 
 stats = importr('stats')
-
-
-# TODO: input validation isn't really right here
 
 
 def to_ts(x):
@@ -33,8 +30,10 @@ def to_ts(x):
   '''
   if type(x) is pandas.Series:
     return series_as_ts(x), True
-  else:
+  elif validate.is_R_ts(x):
     return x, False
+  else:
+    raise TypeError('Must be a Pandas series or R ts object.')
   
 
 def acf_out(x, is_pandas):
@@ -124,8 +123,10 @@ def to_series(x):
   '''
   if type(x) is pandas.Series:
     return x
-  else:
+  elif validate.is_R_ts(x):
     return ts_as_series(x)
+  else:
+    raise TypeError('Must be a Pandas series or R ts object.')
 
 
 def to_decomp(dc):
@@ -139,10 +140,12 @@ def to_decomp(dc):
   Returns:
     the decomposition in dc, as a Pandas Data Frame
   '''
-  if type(dc) is pandas.DataFrame:
+  if validate.is_Pandas_decomposition(dc):
     return dc
-  else:
+  elif validate.is_R_decomposition(dc):
     return decomposition(dc)
+  else:
+    raise TypeError('Must provide a Pandas-type or R-type decomposition')
     
     
 def to_forecast(fc, data, test):
@@ -166,15 +169,17 @@ def to_forecast(fc, data, test):
   '''
   if test is not None:
     test = to_series(test)
-  if type(fc) is pandas.DataFrame:
+  if validate.is_Pandas_forecast(fc):
     if type(data) is not pandas.Series:
-      raise ValueError(
+      raise TypeError(
         'If forecast is Pandas Data Frame, data must be Pandas Series')
     return fc, data, test
-  else:
+  elif validate.is_R_forecast(fc):
     pi = prediction_intervals(fc)
     x = ts_as_series(fc.rx2('x'))
     return pi, x, test
+  else:
+    raise TypeError('Forecast must be R forecast object or Pandas DataFrame')
 
 
 def as_matrix(x):
@@ -189,7 +194,7 @@ def as_matrix(x):
   Returns:
     an R matrix, with the data in x
   '''
-  if type(x) is robjects.Matrix:
+  if validate.is_R_matrix(x):
     return x
   else:
     return matrix(x)

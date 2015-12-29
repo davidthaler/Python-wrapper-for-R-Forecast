@@ -209,16 +209,14 @@ def matrix(x):
   take them as an R matrix. 
   
   Args:
-    x: a list, numpy ndarray (1-D or 2-D), Pandas Series or DataFrame
+    x: a 1-D or 2-D list, 1 numpy ndarray (1-D or 2-D), 
+       Pandas Series or DataFrame
     
   Returns:
     an R matrix containing x
   '''
   nrow = len(x)
-  if type(x) is pandas.DataFrame:
-    x = x.values.ravel()
-  if type(x) is numpy.ndarray:
-    x = x.ravel()
+  x = numpy.array(x).ravel()
   rdata = robjects.FloatVector(x)
   return robjects.r.matrix(rdata, byrow=True, nrow=nrow)
   

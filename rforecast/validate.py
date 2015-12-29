@@ -5,6 +5,12 @@ import pandas
 def is_R_forecast(fc):
   return type(fc) is robjects.ListVector and 'forecast' in cls(fc)
   
+def is_Pandas_forecast(fc):
+  return type(fc) is pandas.DataFrame and 'point_fc' in fc.columns
+
+def is_forecast(fc):
+  return is_R_forecast(fc) or is_Pandas_forecast(fc)
+
 def is_R_decomposition(dc):
   return (type(dc) is robjects.ListVector 
           and cls(dc)[0] in ['stl', 'decomposed.ts'])

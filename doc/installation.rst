@@ -65,21 +65,10 @@ From that level, if you have nose installed, you can run all of the tests with:
 
 .. code-block:: bash
 
-   nosetests --cover-package=rforecast
+   nosetests -v
 
 If you have the *coverage* nose plugin, you can get statement coverage
 
 .. code-block:: bash
 
-  nosetests --cover-package=rforecast --with-cover
-
-And you can include branch coverage with:
-  
-.. code-block:: bash
-
-  nosetests --cover-package=rforecast --with-cover
-
-
-
-
-
+  nosetests -v --cover-package=rforecast --with-cover

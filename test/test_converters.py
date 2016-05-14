@@ -163,15 +163,24 @@ class ConvertersTestCase(unittest.TestCase):
     self.assertEqual(dcdf.index[0], (1999, 1))
     self.assertEqual(dcdf.index[-1], (2010, 4))
     self.assertEqual(dcdf.shape, (48, 4))
-    self.assertEqual(list(dcdf.columns), [u'data', u'seasonal', u'trend', u'remainder'])
-    self.assertAlmostEqual(dcdf.data[(1999, 1)], 30.0525, places=3)
-    self.assertAlmostEqual(dcdf.data[(2010, 4)], 47.9137, places=3)
-    self.assertAlmostEqual(dcdf.seasonal[(1999, 1)], 5.5077, places=3)
-    self.assertAlmostEqual(dcdf.seasonal[(2010, 4)], 0.7848, places=3)
-    self.assertAlmostEqual(dcdf.trend[(1999, 1)], 24.3714, places=3)
-    self.assertAlmostEqual(dcdf.trend[(2010, 4)], 47.1525, places=3)
-    self.assertAlmostEqual(dcdf.remainder[(1999, 1)], 0.1732, places=3)
-    self.assertAlmostEqual(dcdf.remainder[(2010, 4)], -0.0236, places=3)
+    self.assertEqual(list(dcdf.columns), 
+                     [u'data', u'seasonal', u'trend', u'remainder'])
+    self.assertAlmostEqual(dcdf.data[(1999, 1)], 
+                            self.aus_ts.rx(1)[0], places=3)
+    self.assertAlmostEqual(dcdf.data[(2010, 4)], 
+                            self.aus_ts.rx(48)[0], places=3)
+    self.assertAlmostEqual(dcdf.seasonal[(1999, 1)], 
+                            dc.rx2('time.series').rx(1, 1)[0], places=3)
+    self.assertAlmostEqual(dcdf.seasonal[(2010, 4)],
+                            dc.rx2('time.series').rx(48, 1)[0], places=3)
+    self.assertAlmostEqual(dcdf.trend[(1999, 1)],
+                            dc.rx2('time.series').rx(1, 2)[0], places=3)
+    self.assertAlmostEqual(dcdf.trend[(2010, 4)], 
+                            dc.rx2('time.series').rx(48, 2)[0], places=3)
+    self.assertAlmostEqual(dcdf.remainder[(1999, 1)], 
+                            dc.rx2('time.series').rx(1, 3)[0], places=3)
+    self.assertAlmostEqual(dcdf.remainder[(2010, 4)], 
+                            dc.rx2('time.series').rx(48, 3)[0], places=3)
     
     dc = wrappers.decompose(self.aus_ts)
     dcdf = converters.decomposition(dc)
@@ -179,19 +188,28 @@ class ConvertersTestCase(unittest.TestCase):
     self.assertEqual(dcdf.index[0], (1999, 1))
     self.assertEqual(dcdf.index[-1], (2010, 4))
     self.assertEqual(dcdf.shape, (48, 4))
-    self.assertEqual(list(dcdf.columns), [u'data', u'seasonal', u'trend', u'remainder'])
-    self.assertAlmostEqual(dcdf.data[(1999, 1)], 30.0525, places=3)
-    self.assertAlmostEqual(dcdf.data[(2010, 4)], 47.9137, places=3)
-    self.assertAlmostEqual(dcdf.seasonal[(1999, 1)], 8.5906, places=3)
-    self.assertAlmostEqual(dcdf.seasonal[(2010, 4)], 1.5042, places=3)
-    self.assertAlmostEqual(dcdf.trend[(1999, 3)], 25.7805, places=3)
-    self.assertAlmostEqual(dcdf.trend[(2010, 2)], 46.514102, places=3)
+    self.assertEqual(list(dcdf.columns), 
+                     [u'data', u'seasonal', u'trend', u'remainder'])
+    self.assertAlmostEqual(dcdf.data[(1999, 1)], 
+                                     self.aus_ts.rx(1)[0], places=3)
+    self.assertAlmostEqual(dcdf.data[(2010, 4)], 
+                                     self.aus_ts.rx(48)[0], places=3)
+    self.assertAlmostEqual(dcdf.seasonal[(1999, 1)], 
+                            dc.rx2('seasonal').rx(1)[0], places=3)
+    self.assertAlmostEqual(dcdf.seasonal[(2010, 4)], 
+                            dc.rx2('seasonal').rx(48)[0], places=3)
+    self.assertAlmostEqual(dcdf.trend[(1999, 3)], 
+                            dc.rx2('trend').rx(3)[0], places=3)
+    self.assertAlmostEqual(dcdf.trend[(2010, 2)],
+                            dc.rx2('trend').rx(46)[0], places=3)
     self.assertTrue(dcdf.trend.isnull()[(1999, 1)])
     self.assertTrue(dcdf.trend.isnull()[(1999, 2)])
     self.assertTrue(dcdf.trend.isnull()[(2010, 3)])
     self.assertTrue(dcdf.trend.isnull()[(2010, 4)])
-    self.assertAlmostEqual(dcdf.remainder[(1999, 3)], 1.3091, places=3)
-    self.assertAlmostEqual(dcdf.remainder[(2010, 2)], -2.9993, places=3)
+    self.assertAlmostEqual(dcdf.remainder[(1999, 3)], 
+                            dc.rx2('random').rx(3)[0], places=3)
+    self.assertAlmostEqual(dcdf.remainder[(2010, 2)], 
+                            dc.rx2('random').rx(46)[0], places=3)
     self.assertTrue(dcdf.remainder.isnull()[(1999, 1)])
     self.assertTrue(dcdf.remainder.isnull()[(1999, 2)])
     self.assertTrue(dcdf.remainder.isnull()[(2010, 3)])
@@ -205,16 +223,20 @@ class ConvertersTestCase(unittest.TestCase):
     self.assertEqual(list(pred.index), range(2011, 2021))
     self.assertEqual(list(pred.columns), [u'point_fc', u'lower80', 
                     u'upper80', u'lower95', u'upper95'])
-    self.assertAlmostEqual(pred.point_fc[2011], 370.3502, places=3)
-    self.assertAlmostEqual(pred.point_fc[2020], 370.3502, places=3)
-    self.assertAlmostEqual(pred.lower80[2011], 204.1084, places=3)
-    self.assertAlmostEqual(pred.lower80[2020], 204.1084, places=3)
-    self.assertAlmostEqual(pred.upper80[2011], 536.5920, places=3)
-    self.assertAlmostEqual(pred.upper80[2020], 536.5920, places=3)
-    self.assertAlmostEqual(pred.lower95[2011], 112.9187, places=3)
-    self.assertAlmostEqual(pred.lower95[2020], 112.9187, places=3)
-    self.assertAlmostEqual(pred.upper95[2011], 627.7818, places=3)
-    self.assertAlmostEqual(pred.upper95[2020], 627.7818, places=3)
+    self.assertAlmostEqual(pred.point_fc[2011], 
+                           self.fc_oil.rx2('mean').rx(1)[0], places=3)
+    self.assertAlmostEqual(pred.point_fc[2020], 
+                           self.fc_oil.rx2('mean').rx(10)[0], places=3)
+    lower = self.fc_oil.rx2('lower')
+    upper = self.fc_oil.rx2('upper')
+    self.assertAlmostEqual(pred.lower80[2011], lower.rx(1, 1)[0], places=3)
+    self.assertAlmostEqual(pred.lower80[2020], lower.rx(10, 1)[0], places=3)
+    self.assertAlmostEqual(pred.upper80[2011], upper.rx(1, 1)[0], places=3)
+    self.assertAlmostEqual(pred.upper80[2020], upper.rx(10, 1)[0], places=3)
+    self.assertAlmostEqual(pred.lower95[2011], lower.rx(1, 2)[0], places=3)
+    self.assertAlmostEqual(pred.lower95[2020], lower.rx(10, 2)[0], places=3)
+    self.assertAlmostEqual(pred.upper95[2011], upper.rx(1, 2)[0], places=3)
+    self.assertAlmostEqual(pred.upper95[2020], upper.rx(10, 2)[0], places=3)
     self.assertRaises(ValueError, converters.prediction_intervals, self.oil_ts)
 
 
@@ -228,9 +250,14 @@ class ConvertersTestCase(unittest.TestCase):
     acdf2.shape == (7, 2)
     set(acdf2.columns) == {'Train', 'Test'}
     self.assertTrue(acdf1.Train.round(5).equals(acdf2.Train.round(5)))
-    self.assertAlmostEqual(acdf2.Test.ix['ME'], -20.3502, places=3)
-    self.assertAlmostEqual(acdf2.Test.ix['MAE'], 20.3502, places=3)
-    self.assertAlmostEqual(acdf2.Test.ix['RMSE'], 20.3502, places=3)
+    r_test_vals = list(acc2.rx(2, True))
+    r_cols = list(robjects.r.colnames(acc2))
+    self.assertAlmostEqual(acdf2.Test['ME'], 
+                           r_test_vals[r_cols.index('ME')], places=3)
+    self.assertAlmostEqual(acdf2.Test['MAE'], 
+                           r_test_vals[r_cols.index('MAE')], places=3)
+    self.assertAlmostEqual(acdf2.Test['RMSE'], 
+                           r_test_vals[r_cols.index('RMSE')], places=3)
 
 
 

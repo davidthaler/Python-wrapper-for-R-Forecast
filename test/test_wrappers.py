@@ -2,10 +2,9 @@ import unittest
 from rforecast import wrappers
 from rforecast import converters
 from rforecast import ts_io
-import rpy2
 from rpy2 import robjects
+from rpy2.robjects.packages import importr
 import numpy
-import pandas
 
 
 NULL = robjects.NULL
@@ -28,6 +27,7 @@ class WrappersTestCase(unittest.TestCase):
         0.54447409,  0.82227504,  0.99736304,  0.91404314,  0.42225177,
         0.14696605,  0.08098318,  0.11046747,  0.8412757 ,  0.73562921]
     self.rnd = converters.sequence_as_series(r, freq=4)
+    self.fc = importr('forecast')
     
     
   def test_frequency(self):
@@ -60,16 +60,17 @@ class WrappersTestCase(unittest.TestCase):
     bc0 = wrappers.BoxCox(self.oil, 0)
     self.assertAlmostEqual(self.oil[0], bc1[0] + 1, places=4)
     self.assertAlmostEqual(numpy.log(self.oil[0]), bc0[0], places=4)
-    self.assertAlmostEqual(bc[0], 19.07217, places=4)
+    bc_value = (self.oil.rx(1)[0]**0.5 - 1) / 0.5
+    self.assertAlmostEqual(bc[0], bc_value, places=2)
     inv_bc = wrappers.InvBoxCox(bc, 0.5)
     self.assertAlmostEqual(inv_bc[0], self.oil[0], places=4)
 
   def test_tsclean(self):
-    clean_gold = wrappers.tsclean(converters.ts_as_series(self.gold))
-    self.assertFalse(clean_gold.isnull().any())
-    self.assertAlmostEqual(clean_gold[56], 333.250, places=3)
-    self.assertAlmostEqual(clean_gold[419],394.5, places=3)
-    self.assertAlmostEqual(clean_gold[604], 476.6000, places=3)
+    gold_py = converters.ts_as_series(self.gold)
+    clean_py = wrappers.tsclean(gold_py)
+    self.assertFalse(clean_py.isnull().any())
+    clean_r = self.fc.tsclean(self.gold)
+    self.assertAlmostEqual(clean_py[770], clean_r.rx(770), places=3)
 
   def test_findfrequency(self):
     self.assertEqual(wrappers.findfrequency(self.aus), 4)

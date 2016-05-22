@@ -5,7 +5,6 @@ seasonal decompositions from R. It is the main module in this package.
 from rpy2 import robjects
 from rpy2.robjects.packages import importr
 import numpy
-import pandas
 import converters
 import validate
 import itertools
